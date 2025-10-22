@@ -1,0 +1,70 @@
+# --- Go build artifacts ---
+bin/
+out/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# --- Go test coverage ---
+coverage.out
+coverage.txt
+coverage.html
+*.coverprofile
+*.cov
+*.prof
+*.trace
+
+
+# Dependency directories (Go modules handle dependencies automatically)
+vendor/
+
+# GoLand / IntelliJ
+.idea/
+*.iml
+
+# --- Devcontainers / Docker ---
+.devcontainer/.env
+.devcontainer/.devcontainer-build/
+.devcontainer/docker-compose.override.yml
+docker-compose.override.yml
+build/
+.env
+.env.local
+
+# --- System / Editor cruft ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.bak
+*~
+~$*
+
+# --- Logs and temp files ---
+*.log
+tmp/
+temp/
+.cache/
+coverage/
+
+# --- Local testing / E2E ---
+testdata/tmp/
+test/e2e/tmp/
+*.tmp
+
+# --- Application-specific ---
+# Ignore runtime-generated or user-local state
+OutfitSelectorCache.json
+outfitpicker.log
+outfitpicker-admin.log
+outfitpicker.db
+config.json
+
+# --- Go tool cache (optional, for local builds only) ---
+# comment out if you use go build cache intentionally
+*.syso
