@@ -42,6 +42,10 @@ func createTestFile(t *testing.T, dir, filename string) {
 	if err := os.WriteFile(path, []byte("test content"), 0o644); err != nil {
 		t.Fatalf("failed to create test file %s: %v", path, err)
 	}
+	// Ensure file is readable on all platforms
+	if err := os.Chmod(path, 0o644); err != nil {
+		t.Fatalf("failed to set permissions on %s: %v", path, err)
+	}
 }
 
 func createTestStructure(t *testing.T) string {
@@ -57,6 +61,10 @@ func createTestStructure(t *testing.T) string {
 		if err := os.MkdirAll(catPath, 0o755); err != nil {
 			t.Fatalf("failed to create category dir: %v", err)
 		}
+		// Ensure directory permissions are set correctly
+		if err := os.Chmod(catPath, 0o755); err != nil {
+			t.Fatalf("failed to set dir permissions: %v", err)
+		}
 		for _, file := range files[cat] {
 			createTestFile(t, catPath, file)
 		}
@@ -66,6 +74,9 @@ func createTestStructure(t *testing.T) string {
 }
 
 func TestRun_CacheInitError(t *testing.T) {
+	if os.Getenv("GOOS") == "windows" {
+		t.Skip("skipping /dev/null test on Windows")
+	}
 	_, err := runTest("/dev/null", "", "")
 	assertError(t, err, "failed to")
 }
@@ -76,7 +87,8 @@ func TestRun_InvalidRootPath(t *testing.T) {
 }
 
 func TestRun_ListCategoriesError(t *testing.T) {
-	nonExistent := filepath.Join(t.TempDir(), "nonexistent")
+	tempDir := t.TempDir()
+	nonExistent := filepath.Join(tempDir, "nonexistent")
 	_, err := runTest(nonExistent, "", "")
 	if err == nil {
 		t.Fatal("expected error for non-existent directory")
@@ -207,10 +219,11 @@ func TestRun_NumericSelectionEdgeCases(t *testing.T) {
 }
 
 func TestRun_AbsolutePathError(t *testing.T) {
-	longPath := strings.Repeat("a", 1000)
-	_, err := runTest(longPath, "", "")
+	// Use a more reliable invalid path that works across platforms
+	invalidPath := filepath.Join(string(filepath.Separator), "invalid", "path", "that", "does", "not", "exist")
+	_, err := runTest(invalidPath, "", "")
 	if err == nil {
-		t.Fatal("expected error for problematic path")
+		t.Fatal("expected error for invalid path")
 	}
 }
 

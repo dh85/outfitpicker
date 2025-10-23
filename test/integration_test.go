@@ -27,6 +27,8 @@ func newIntegrationTest(t *testing.T) *integrationTest {
 	
 	// Set config directory for testing
 	t.Setenv("XDG_CONFIG_HOME", configDir)
+	// Ensure clean config state
+	config.Delete()
 	
 	return &integrationTest{
 		t:         t,
@@ -126,6 +128,7 @@ func TestIntegration_CompleteUserWorkflows(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			it := newIntegrationTest(t)
+			defer config.Delete() // Ensure cleanup after each integration test
 			it.createOutfitStructure()
 			tt.test(it)
 		})
@@ -133,6 +136,10 @@ func TestIntegration_CompleteUserWorkflows(t *testing.T) {
 }
 
 func testFirstTimeSetup(it *integrationTest) {
+	// Ensure clean state
+	config.Delete()
+	defer config.Delete()
+	
 	// Test first run wizard
 	input := it.rootDir + "\n"
 	var stdout bytes.Buffer
@@ -215,6 +222,10 @@ func testShowFunctions(it *integrationTest) {
 }
 
 func testConfigManagement(it *integrationTest) {
+	// Ensure clean state
+	config.Delete()
+	defer config.Delete()
+	
 	// Test config save
 	testRoot := filepath.Join(it.tempDir, "test-root")
 	cfg := &config.Config{Root: testRoot}
@@ -305,6 +316,7 @@ func testCacheManagement(it *integrationTest) {
 // Test specific category workflows
 func TestIntegration_CategoryWorkflows(t *testing.T) {
 	it := newIntegrationTest(t)
+	defer config.Delete()
 	it.createOutfitStructure()
 	
 	// Test direct category access
@@ -331,6 +343,7 @@ func TestIntegration_CategoryWorkflows(t *testing.T) {
 // Test edge cases and boundary conditions
 func TestIntegration_EdgeCases(t *testing.T) {
 	it := newIntegrationTest(t)
+	defer config.Delete()
 	
 	// Test with hidden files and directories
 	catDir := filepath.Join(it.rootDir, "TestCat")
@@ -363,6 +376,7 @@ func TestIntegration_EdgeCases(t *testing.T) {
 // Test concurrent access and file system operations
 func TestIntegration_FileSystemOperations(t *testing.T) {
 	it := newIntegrationTest(t)
+	defer config.Delete()
 	it.createOutfitStructure()
 	
 	// Test that cache persists across runs

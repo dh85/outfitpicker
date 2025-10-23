@@ -185,6 +185,8 @@ func TestErrorHandling(t *testing.T) {
 func TestRootResolution(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	// Ensure completely clean state
+	config.Delete()
 
 	// Create test structure
 	rootDir := filepath.Join(tempDir, "outfits")
@@ -209,8 +211,12 @@ func TestRootResolution(t *testing.T) {
 			name: "config root",
 			args: []string{"--category", "TestCat"},
 			setup: func() {
-				// Ensure the directory exists before saving to config
+				// Ensure clean config state first
+				config.Delete()
+				// Ensure the directory and test structure exists before saving to config
 				os.MkdirAll(rootDir, 0755)
+				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 				config.Save(&config.Config{Root: rootDir})
 			},
 		},
