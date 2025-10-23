@@ -113,7 +113,7 @@ brews:
     repository:
       owner: dh85
       name: homebrew-tap
-      token: "{{ .Env.GITHUB_TOKEN }}"
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
     directory: Formula
     homepage: https://github.com/dh85/outfitpicker
     description: Interactive CLI to pick outfits from category folders
