@@ -85,6 +85,7 @@ func getEnglishTranslations() map[string]string {
 		"selected_outfit":       "✅ Selected: %s",
 		"no_outfits_available":  "No outfits available",
 		"category_not_found":    "category %q not found",
+		"files_count":           "(%d files)",
 		"exiting":               "Exiting.",
 	}
 }
@@ -113,6 +114,7 @@ func getSpanishTranslations() map[string]string {
 		"selected_outfit":       "✅ Seleccionado: %s",
 		"no_outfits_available":  "No hay outfits disponibles",
 		"category_not_found":    "categoría %q no encontrada",
+		"files_count":           "(%d archivos)",
 		"exiting":               "Saliendo.",
 	}
 }
@@ -141,6 +143,7 @@ func getDutchTranslations() map[string]string {
 		"selected_outfit":       "✅ Geselecteerd: %s",
 		"no_outfits_available":  "Geen outfits beschikbaar",
 		"category_not_found":    "categorie %q niet gevonden",
+		"files_count":           "(%d bestanden)",
 		"exiting":               "Afsluiten.",
 	}
 }
@@ -169,6 +172,7 @@ func getFrenchTranslations() map[string]string {
 		"selected_outfit":       "✅ Sélectionné: %s",
 		"no_outfits_available":  "Aucune tenue disponible",
 		"category_not_found":    "catégorie %q introuvable",
+		"files_count":           "(%d fichiers)",
 		"exiting":               "Fermeture.",
 	}
 }
@@ -197,6 +201,7 @@ func getPortugueseTranslations() map[string]string {
 		"selected_outfit":       "✅ Selecionado: %s",
 		"no_outfits_available":  "Nenhuma roupa disponível",
 		"category_not_found":    "categoria %q não encontrada",
+		"files_count":           "(%d arquivos)",
 		"exiting":               "Saindo.",
 	}
 }
@@ -225,6 +230,7 @@ func getItalianTranslations() map[string]string {
 		"selected_outfit":       "✅ Selezionato: %s",
 		"no_outfits_available":  "Nessun outfit disponibile",
 		"category_not_found":    "categoria %q non trovata",
+		"files_count":           "(%d file)",
 		"exiting":               "Uscita.",
 	}
 }
@@ -253,6 +259,7 @@ func getGermanTranslations() map[string]string {
 		"selected_outfit":       "✅ Ausgewählt: %s",
 		"no_outfits_available":  "Keine Outfits verfügbar",
 		"category_not_found":    "Kategorie %q nicht gefunden",
+		"files_count":           "(%d Dateien)",
 		"exiting":               "Beenden.",
 	}
 }
@@ -281,6 +288,7 @@ func getRussianTranslations() map[string]string {
 		"selected_outfit":       "✅ Выбрано: %s",
 		"no_outfits_available":  "Нет доступных нарядов",
 		"category_not_found":    "категория %q не найдена",
+		"files_count":           "(%d файлов)",
 		"exiting":               "Выход.",
 	}
 }
@@ -309,6 +317,7 @@ func getJapaneseTranslations() map[string]string {
 		"selected_outfit":       "✅ 選択済み: %s",
 		"no_outfits_available":  "利用可能な服装がありません",
 		"category_not_found":    "カテゴリ %q が見つかりません",
+		"files_count":           "(%dファイル)",
 		"exiting":               "終了中。",
 	}
 }
@@ -337,6 +346,7 @@ func getMandarinTranslations() map[string]string {
 		"selected_outfit":       "✅ 已选择: %s",
 		"no_outfits_available":  "没有可用的服装",
 		"category_not_found":    "未找到类别 %q",
+		"files_count":           "(%d个文件)",
 		"exiting":               "正在退出。",
 	}
 }
@@ -365,6 +375,7 @@ func getNorwegianTranslations() map[string]string {
 		"selected_outfit":       "✅ Valgt: %s",
 		"no_outfits_available":  "Ingen antrekk tilgjengelig",
 		"category_not_found":    "kategori %q ikke funnet",
+		"files_count":           "(%d filer)",
 		"exiting":               "Avslutter.",
 	}
 }
@@ -393,6 +404,7 @@ func getSwedishTranslations() map[string]string {
 		"selected_outfit":       "✅ Vald: %s",
 		"no_outfits_available":  "Inga outfits tillgängliga",
 		"category_not_found":    "kategori %q hittades inte",
+		"files_count":           "(%d filer)",
 		"exiting":               "Avslutar.",
 	}
 }
@@ -421,6 +433,7 @@ func getFinnishTranslations() map[string]string {
 		"selected_outfit":       "✅ Valittu: %s",
 		"no_outfits_available":  "Ei asuja saatavilla",
 		"category_not_found":    "kategoria %q ei löytynyt",
+		"files_count":           "(%d tiedostoa)",
 		"exiting":               "Poistutaan.",
 	}
 }
@@ -449,6 +462,7 @@ func getDanishTranslations() map[string]string {
 		"selected_outfit":       "✅ Valgt: %s",
 		"no_outfits_available":  "Ingen outfits tilgængelige",
 		"category_not_found":    "kategori %q ikke fundet",
+		"files_count":           "(%d filer)",
 		"exiting":               "Afslutter.",
 	}
 }
@@ -477,6 +491,7 @@ func getPolishTranslations() map[string]string {
 		"selected_outfit":       "✅ Wybrane: %s",
 		"no_outfits_available":  "Brak dostępnych strojów",
 		"category_not_found":    "kategoria %q nie znaleziona",
+		"files_count":           "(%d plików)",
 		"exiting":               "Wychodzenie.",
 	}
 }
@@ -505,6 +520,7 @@ func getHungarianTranslations() map[string]string {
 		"selected_outfit":       "✅ Kiválasztva: %s",
 		"no_outfits_available":  "Nincs elérhető öltözet",
 		"category_not_found":    "kategória %q nem található",
+		"files_count":           "(%d fájl)",
 		"exiting":               "Kilépés.",
 	}
 }
@@ -533,6 +549,7 @@ func getCroatianTranslations() map[string]string {
 		"selected_outfit":       "✅ Odabrano: %s",
 		"no_outfits_available":  "Nema dostupne odjeće",
 		"category_not_found":    "kategorija %q nije pronađena",
+		"files_count":           "(%d datoteka)",
 		"exiting":               "Izlaženje.",
 	}
 }
@@ -561,6 +578,7 @@ func getSerbianTranslations() map[string]string {
 		"selected_outfit":       "✅ Изабрано: %s",
 		"no_outfits_available":  "Нема доступне одеће",
 		"category_not_found":    "категорија %q није пронађена",
+		"files_count":           "(%d датотека)",
 		"exiting":               "Излажење.",
 	}
 }
@@ -589,6 +607,7 @@ func getRomanianTranslations() map[string]string {
 		"selected_outfit":       "✅ Selectat: %s",
 		"no_outfits_available":  "Nu sunt ținute disponibile",
 		"category_not_found":    "categoria %q nu a fost găsită",
+		"files_count":           "(%d fișiere)",
 		"exiting":               "Ieșire.",
 	}
 }
@@ -617,6 +636,7 @@ func getGreekTranslations() map[string]string {
 		"selected_outfit":       "✅ Επιλέχθηκε: %s",
 		"no_outfits_available":  "Δεν υπάρχουν διαθέσιμα ντυσίματα",
 		"category_not_found":    "κατηγορία %q δεν βρέθηκε",
+		"files_count":           "(%d αρχεία)",
 		"exiting":               "Έξοδος.",
 	}
 }
@@ -645,6 +665,7 @@ func getTurkishTranslations() map[string]string {
 		"selected_outfit":       "✅ Seçildi: %s",
 		"no_outfits_available":  "Mevcut kıyafet yok",
 		"category_not_found":    "kategori %q bulunamadı",
+		"files_count":           "(%d dosya)",
 		"exiting":               "Çıkılıyor.",
 	}
 }
@@ -673,6 +694,7 @@ func getKoreanTranslations() map[string]string {
 		"selected_outfit":       "✅ 선택됨: %s",
 		"no_outfits_available":  "사용 가능한 의상이 없습니다",
 		"category_not_found":    "카테고리 %q를 찾을 수 없습니다",
+		"files_count":           "(%d개 파일)",
 		"exiting":               "종료 중.",
 	}
 }
@@ -701,6 +723,7 @@ func getUkrainianTranslations() map[string]string {
 		"selected_outfit":       "✅ Вибрано: %s",
 		"no_outfits_available":  "Немає доступного вбрання",
 		"category_not_found":    "категорія %q не знайдена",
+		"files_count":           "(%d файлів)",
 		"exiting":               "Вихід.",
 	}
 }
@@ -729,6 +752,7 @@ func getSlovakTranslations() map[string]string {
 		"selected_outfit":       "✅ Vybrané: %s",
 		"no_outfits_available":  "Žiadne oblečenie nie je k dispozícii",
 		"category_not_found":    "kategória %q nebola nájdená",
+		"files_count":           "(%d súborov)",
 		"exiting":               "Ukončovanie.",
 	}
 }
@@ -757,6 +781,7 @@ func getCzechTranslations() map[string]string {
 		"selected_outfit":       "✅ Vybráno: %s",
 		"no_outfits_available":  "Žádné oblečení není k dispozici",
 		"category_not_found":    "kategorie %q nebyla nalezena",
+		"files_count":           "(%d souborů)",
 		"exiting":               "Ukončování.",
 	}
 }
@@ -785,6 +810,7 @@ func getSlovenianTranslations() map[string]string {
 		"selected_outfit":       "✅ Izbrano: %s",
 		"no_outfits_available":  "Ni na voljo oblačil",
 		"category_not_found":    "kategorija %q ni bila najdena",
+		"files_count":           "(%d datotek)",
 		"exiting":               "Izhajanje.",
 	}
 }
@@ -813,6 +839,7 @@ func getArabicTranslations() map[string]string {
 		"selected_outfit":       "✅ محدد: %s",
 		"no_outfits_available":  "لا توجد ملابس متاحة",
 		"category_not_found":    "الفئة %q غير موجودة",
+		"files_count":           "(%d ملفات)",
 		"exiting":               "جاري الخروج.",
 	}
 }
@@ -841,6 +868,7 @@ func getHindiTranslations() map[string]string {
 		"selected_outfit":       "✅ चयनित: %s",
 		"no_outfits_available":  "कोई पोशाक उपलब्ध नहीं",
 		"category_not_found":    "श्रेणी %q नहीं मिली",
+		"files_count":           "(%d फ़ाइलें)",
 		"exiting":               "बाहर निकल रहे हैं।",
 	}
 }
@@ -870,6 +898,7 @@ func getBengaliTranslations() map[string]string {
 		"selected_outfit":       "✅ নির্বাচিত: %s",
 		"no_outfits_available":  "কোন পোশাক উপলব্ধ নেই",
 		"category_not_found":    "বিভাগ %q পাওয়া যায়নি",
+		"files_count":           "(%d ফাইল)",
 		"exiting":               "প্রস্থান করা হচ্ছে।",
 	}
 }
@@ -898,6 +927,7 @@ func getVietnameseTranslations() map[string]string {
 		"selected_outfit":       "✅ Đã chọn: %s",
 		"no_outfits_available":  "Không có trang phục nào",
 		"category_not_found":    "không tìm thấy danh mục %q",
+		"files_count":           "(%d tệp)",
 		"exiting":               "Đang thoát.",
 	}
 }
@@ -926,6 +956,7 @@ func getThaiTranslations() map[string]string {
 		"selected_outfit":       "✅ เลือกแล้ว: %s",
 		"no_outfits_available":  "ไม่มีชุดที่ใช้ได้",
 		"category_not_found":    "ไม่พบหมวดหมู่ %q",
+		"files_count":           "(%d ไฟล์)",
 		"exiting":               "กำลังออก",
 	}
 }
@@ -954,6 +985,7 @@ func getHebrewTranslations() map[string]string {
 		"selected_outfit":       "✅ נבחר: %s",
 		"no_outfits_available":  "אין תלבושות זמינות",
 		"category_not_found":    "קטגוריה %q לא נמצאה",
+		"files_count":           "(%d קבצים)",
 		"exiting":               "יוצא.",
 	}
 }
@@ -982,6 +1014,7 @@ func getIndonesianTranslations() map[string]string {
 		"selected_outfit":       "✅ Dipilih: %s",
 		"no_outfits_available":  "Tidak ada pakaian tersedia",
 		"category_not_found":    "kategori %q tidak ditemukan",
+		"files_count":           "(%d file)",
 		"exiting":               "Keluar.",
 	}
 }
@@ -1010,6 +1043,7 @@ func getMalayTranslations() map[string]string {
 		"selected_outfit":       "✅ Dipilih: %s",
 		"no_outfits_available":  "Tiada pakaian tersedia",
 		"category_not_found":    "kategori %q tidak dijumpai",
+		"files_count":           "(%d fail)",
 		"exiting":               "Keluar.",
 	}
 }
@@ -1038,6 +1072,7 @@ func getSwahiliTranslations() map[string]string {
 		"selected_outfit":       "✅ Yamechaguliwa: %s",
 		"no_outfits_available":  "Hakuna mavazi yaliyopatikana",
 		"category_not_found":    "jamii %q haijapatikana",
+		"files_count":           "(%d faili)",
 		"exiting":               "Kutoka.",
 	}
 }
@@ -1067,6 +1102,7 @@ func getBulgarianTranslations() map[string]string {
 		"selected_outfit":       "✅ Избрано: %s",
 		"no_outfits_available":  "Няма налични облекла",
 		"category_not_found":    "категория %q не е намерена",
+		"files_count":           "(%d файла)",
 		"exiting":               "Излизане.",
 	}
 }
@@ -1095,6 +1131,7 @@ func getLithuanianTranslations() map[string]string {
 		"selected_outfit":       "✅ Pasirinkta: %s",
 		"no_outfits_available":  "Nėra prieinamų aprangų",
 		"category_not_found":    "kategorija %q nerasta",
+		"files_count":           "(%d failų)",
 		"exiting":               "Išeiname.",
 	}
 }
@@ -1123,6 +1160,7 @@ func getLatvianTranslations() map[string]string {
 		"selected_outfit":       "✅ Izvēlēts: %s",
 		"no_outfits_available":  "Nav pieejami apgērbi",
 		"category_not_found":    "kategorija %q nav atrasta",
+		"files_count":           "(%d failu)",
 		"exiting":               "Izejam.",
 	}
 }
@@ -1151,6 +1189,7 @@ func getEstonianTranslations() map[string]string {
 		"selected_outfit":       "✅ Valitud: %s",
 		"no_outfits_available":  "Rõivaid pole saadaval",
 		"category_not_found":    "kategooriat %q ei leitud",
+		"files_count":           "(%d faili)",
 		"exiting":               "Väljumine.",
 	}
 }
@@ -1179,6 +1218,7 @@ func getIcelandicTranslations() map[string]string {
 		"selected_outfit":       "✅ Valið: %s",
 		"no_outfits_available":  "Engin fatö til staðar",
 		"category_not_found":    "flokkur %q fannst ekki",
+		"files_count":           "(%d skrár)",
 		"exiting":               "Hætti.",
 	}
 }
@@ -1207,6 +1247,7 @@ func getMalteseTranslations() map[string]string {
 		"selected_outfit":       "✅ Magħżula: %s",
 		"no_outfits_available":  "Ebda ħwejjeġ disponibbli",
 		"category_not_found":    "kategorija %q ma nstabx",
+		"files_count":           "(%d fajls)",
 		"exiting":               "Qed noħroġ.",
 	}
 }
@@ -1235,6 +1276,7 @@ func getCatalanTranslations() map[string]string {
 		"selected_outfit":       "✅ Seleccionat: %s",
 		"no_outfits_available":  "No hi ha vestits disponibles",
 		"category_not_found":    "categoria %q no trobada",
+		"files_count":           "(%d fitxers)",
 		"exiting":               "Sortint.",
 	}
 }
@@ -1264,6 +1306,7 @@ func getTamilTranslations() map[string]string {
 		"selected_outfit":       "✅ தேர்ந்தெடுக்கப்பட்டது: %s",
 		"no_outfits_available":  "உடைகள் எதுவும் கிடைக்கவில்லை",
 		"category_not_found":    "வகை %q கண்டுபிடிக்கப்படவில்லை",
+		"files_count":           "(%d கோப்புகள்)",
 		"exiting":               "வெளியேறுகிறது.",
 	}
 }
@@ -1292,6 +1335,7 @@ func getTeluguTranslations() map[string]string {
 		"selected_outfit":       "✅ ఎంచుకోబడింది: %s",
 		"no_outfits_available":  "దుస్తులు అందుబాటులో లేవు",
 		"category_not_found":    "వర్గం %q కనుగొనబడలేదు",
+		"files_count":           "(%d ఫైల్లు)",
 		"exiting":               "నిష్క్రమిస్తోంది.",
 	}
 }
@@ -1320,6 +1364,7 @@ func getGujaratiTranslations() map[string]string {
 		"selected_outfit":       "✅ પસંદ કરેલ: %s",
 		"no_outfits_available":  "કોઈ પોશાક ઉપલબ્ધ નથી",
 		"category_not_found":    "કેટેગરી %q મળી નથી",
+		"files_count":           "(%d ફાઇલો)",
 		"exiting":               "બહાર નીકળી રહ્યા છીએ.",
 	}
 }
@@ -1348,6 +1393,7 @@ func getPunjabiTranslations() map[string]string {
 		"selected_outfit":       "✅ ਚੁਣਿਆ ਗਿਆ: %s",
 		"no_outfits_available":  "ਕੋਈ ਪਹਿਰਾਵਾ ਉਪਲਬਧ ਨਹੀਂ",
 		"category_not_found":    "ਸ਼੍ਰੇਣੀ %q ਨਹੀਂ ਮਿਲੀ",
+		"files_count":           "(%d ਫਾਈਲਾਂ)",
 		"exiting":               "ਬਾਹਰ ਨਿਕਲ ਰਹੇ ਹਾਂ.",
 	}
 }
@@ -1376,6 +1422,7 @@ func getUrduTranslations() map[string]string {
 		"selected_outfit":       "✅ منتخب شدہ: %s",
 		"no_outfits_available":  "کوئی لباس دستیاب نہیں",
 		"category_not_found":    "قسم %q نہیں ملی",
+		"files_count":           "(%d فائلیں)",
 		"exiting":               "باہر نکل رہے ہیں۔",
 	}
 }
@@ -1405,6 +1452,7 @@ func getAmharicTranslations() map[string]string {
 		"selected_outfit":       "✅ ተመርጧ: %s",
 		"no_outfits_available":  "ምንም ልብስ የለም",
 		"category_not_found":    "ክፍል %q አልተገኘም",
+		"files_count":           "(%d ፋይሎች)",
 		"exiting":               "እየወጣ ነው።",
 	}
 }
@@ -1433,6 +1481,7 @@ func getYorubaTranslations() map[string]string {
 		"selected_outfit":       "✅ Ti a yan: %s",
 		"no_outfits_available":  "Ko si asọ ti o wa",
 		"category_not_found":    "eka %q ko ri",
+		"files_count":           "(%d faili)",
 		"exiting":               "N jade.",
 	}
 }
@@ -1461,6 +1510,7 @@ func getZuluTranslations() map[string]string {
 		"selected_outfit":       "✅ Kukhethiwe: %s",
 		"no_outfits_available":  "Azikho izingubo ezitholakalayo",
 		"category_not_found":    "isigaba %s asitholakali",
+		"files_count":           "(%d amafayela)",
 		"exiting":               "Kuphuma.",
 	}
 }
@@ -1489,6 +1539,7 @@ func getAfrikaansTranslations() map[string]string {
 		"selected_outfit":       "✅ Gekies: %s",
 		"no_outfits_available":  "Geen klere beskikbaar nie",
 		"category_not_found":    "kategorie %q nie gevind nie",
+		"files_count":           "(%d lêers)",
 		"exiting":               "Verlaat.",
 	}
 }
