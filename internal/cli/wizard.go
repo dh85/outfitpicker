@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dh85/outfitpicker/internal/storage"
+	"github.com/dh85/outfitpicker/internal/ui"
 	"github.com/dh85/outfitpicker/pkg/config"
 )
 
@@ -50,24 +51,32 @@ func FirstRunWizard(stdin io.Reader, stdout io.Writer) (string, error) {
 }
 
 func printWelcomeMessage(stdout io.Writer) {
-	fmt.Fprintln(stdout, "it looks like this is your first time running outfitpicker")
-	fmt.Fprintln(stdout, "please enter the full path to your Outfits root directory")
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(stdout, theme)
+
+	uiInstance.Header("First Time Setup")
+	uiInstance.Info("Welcome to outfitpicker! Let's set up your outfit directory.")
+	fmt.Fprintln(stdout, "Please enter the full path to your Outfits root directory")
+
 	if runtime.GOOS == "windows" {
-		fmt.Fprintln(stdout, "example:", windowsExample)
+		fmt.Fprintf(stdout, "Example: %s\n", windowsExample)
 	} else {
-		fmt.Fprintln(stdout, "example:", unixExample)
+		fmt.Fprintf(stdout, "Example: %s\n", unixExample)
 	}
 }
 
 func getPathInput(br *bufio.Reader, stdout io.Writer) (string, error) {
-	fmt.Fprint(stdout, "root path: ")
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(stdout, theme)
+
+	fmt.Fprint(stdout, "📁 Root path: ")
 	line, err := readLine(br)
 	if err != nil {
 		return "", fmt.Errorf("no input provided; run again with --root /path/to/Outfits")
 	}
 	path := strings.TrimSpace(line)
 	if path == "" {
-		fmt.Fprintln(stdout, "please enter a non-empty path")
+		uiInstance.Warning("Please enter a non-empty path")
 	}
 	return path, nil
 }
@@ -85,24 +94,32 @@ func handlePath(path string, br *bufio.Reader, stdout io.Writer) (string, bool, 
 }
 
 func handleExistingPath(path string, info os.FileInfo, stdout io.Writer) (string, bool, error) {
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(stdout, theme)
+
 	if !info.IsDir() {
-		fmt.Fprintln(stdout, "path exists but is not a directory")
+		uiInstance.Error("Path exists but is not a directory")
 		return "", true, nil
 	}
+	uiInstance.Success("Found existing directory")
 	return finalizeSetup(path, stdout)
 }
 
 func handleNonExistentPath(path string, br *bufio.Reader, stdout io.Writer) (string, bool, error) {
-	fmt.Fprintf(stdout, "path does not exist: %s\n", path)
-	fmt.Fprint(stdout, "create it now? [y/N]: ")
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(stdout, theme)
+
+	uiInstance.Warning(fmt.Sprintf("Path does not exist: %s", path))
+	fmt.Fprint(stdout, "📝 Create it now? [y/N]: ")
 	yn, _ := readLine(br)
 	if !isYesResponse(yn) {
 		return "", true, nil
 	}
-	if err := os.MkdirAll(path, dirPermissions); err != nil {
-		fmt.Fprintf(stdout, "failed to create directory: %v\n", err)
+	if err := os.MkdirAll(path, 0o755); err != nil {
+		uiInstance.Error(fmt.Sprintf("Failed to create directory: %v", err))
 		return "", true, nil
 	}
+	uiInstance.Success("Directory created successfully")
 	return finalizeSetup(path, stdout)
 }
 
@@ -112,12 +129,17 @@ func isYesResponse(response string) bool {
 }
 
 func finalizeSetup(path string, stdout io.Writer) (string, bool, error) {
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(stdout, theme)
+
 	if err := config.Save(&config.Config{Root: path}); err != nil {
 		return "", false, fmt.Errorf("failed to save config: %w", err)
 	}
 	if err := EnsureCacheAtRoot(path, stdout); err != nil {
 		return "", false, err
 	}
+	uiInstance.Success("Setup completed successfully!")
+	uiInstance.Info(fmt.Sprintf("Your outfit directory is set to: %s", path))
 	return path, false, nil
 }
 
@@ -132,7 +154,9 @@ func EnsureCacheAtRoot(root string, out io.Writer) error {
 			return fmt.Errorf("failed to create cache directory: %w", err)
 		}
 		cm.Save(storage.Map{})
-		fmt.Fprintf(out, "🗂️ created cache at %s\n", cm.Path())
+		theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+		uiInstance := ui.NewUI(out, theme)
+		uiInstance.Info(fmt.Sprintf("Created cache at %s", cm.Path()))
 	}
 	return nil
 }
@@ -160,4 +184,16 @@ func readLine(r *bufio.Reader) (string, error) {
 		return "", err
 	}
 	return strings.TrimSpace(s), nil
+}
+
+// shouldUseColors determines if colors should be used based on environment
+func shouldUseColors() bool {
+	// Check if output is a terminal and colors are supported
+	if term := os.Getenv("TERM"); term == "dumb" || term == "" {
+		return false
+	}
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
+	return true
 }

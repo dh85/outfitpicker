@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/dh85/outfitpicker/internal/storage"
+	"github.com/dh85/outfitpicker/internal/ui"
 )
 
 func Run(rootPath, categoryOpt string, stdin io.Reader, stdout io.Writer) error {
@@ -78,16 +79,14 @@ func handleMainMenu(categories []string, cache *storage.Manager, pr *prompter, s
 }
 
 func displayMainMenu(categories []string, stdout io.Writer) {
-	fmt.Fprintln(stdout, "\nCategories:")
-	for i, c := range categories {
-		fmt.Fprintf(stdout, "[%d] %s\n", i+1, filepath.Base(c))
+	// Create enhanced UI for main menu
+	theme := ui.Theme{
+		UseColors: shouldUseColors(),
+		UseEmojis: true,
+		Compact:   false,
 	}
-	fmt.Fprintln(stdout, "\nAll-categories options:")
-	fmt.Fprintln(stdout, "[r] Select a random file from any category")
-	fmt.Fprintln(stdout, "[s] Show previously selected files from all categories")
-	fmt.Fprintln(stdout, "[u] Show unselected files from all categories")
-	fmt.Fprintln(stdout, "[q] Quit")
-	fmt.Fprint(stdout, "Enter a category number or option: ")
+	uiInstance := ui.NewUI(stdout, theme)
+	uiInstance.MainMenu(categories)
 }
 
 func parseNumericChoice(choice string) (int, error) {

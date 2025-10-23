@@ -33,7 +33,7 @@ func newRootCmd() *cobra.Command {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// handle --version early for any command
 			if showVersion {
-				fmt.Fprintln(cmd.OutOrStdout(), version.Version)
+				fmt.Fprintln(cmd.OutOrStdout(), version.GetVersion())
 				os.Exit(0)
 			}
 			return nil

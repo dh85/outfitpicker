@@ -112,7 +112,7 @@ func TestEnsureCacheAtRoot(t *testing.T) {
 
 	err := EnsureCacheAtRoot(root, &buf)
 	assertError(t, err, false, "EnsureCacheAtRoot")
-	assertStringContains(t, buf.String(), "created cache at", "cache creation message")
+	assertStringContains(t, buf.String(), "Created cache at", "cache creation message")
 }
 
 func TestEnsureCacheAtRoot_ExistingCache(t *testing.T) {
@@ -139,7 +139,7 @@ func TestFirstRunWizard_EmptyPath(t *testing.T) {
 	result, output, err := runWizardTest(fmt.Sprintf("\n%s\n", validPath))
 	assertError(t, err, false, "empty path then valid path")
 	assertStringEquals(t, validPath, result, "result path")
-	assertStringContains(t, output, "please enter a non-empty path", "empty path message")
+	assertStringContains(t, output, "Please enter a non-empty path", "empty path message")
 }
 
 func TestFirstRunWizard_ValidExistingDirectory(t *testing.T) {
@@ -158,7 +158,7 @@ func TestFirstRunWizard_PathIsFile(t *testing.T) {
 	result, output, err := runWizardTest(fmt.Sprintf("%s\n%s\n", filePath, validPath))
 	assertError(t, err, false, "file path then valid path")
 	assertStringEquals(t, validPath, result, "result path")
-	assertStringContains(t, output, "path exists but is not a directory", "file error message")
+	assertStringContains(t, output, "Path exists but is not a directory", "file error message")
 }
 
 func TestFirstRunWizard_CreateNewDirectory_Yes(t *testing.T) {
@@ -211,7 +211,7 @@ func TestFirstRunWizard_CreateDirectoryError(t *testing.T) {
 	result, output, err := runWizardTest(fmt.Sprintf("%s\ny\n%s\n", newPath, validPath))
 	assertError(t, err, false, "create directory error then valid path")
 	assertStringEquals(t, validPath, result, "result path")
-	assertStringContains(t, output, "failed to create directory", "create directory error")
+	assertStringContains(t, output, "Failed to create directory", "create directory error")
 }
 
 func TestFirstRunWizard_StatError(t *testing.T) {

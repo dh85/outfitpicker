@@ -325,7 +325,7 @@ func TestRunCategoryFlow(t *testing.T) {
 			name:     "ShowSelected_Empty",
 			setup:    func(f *testFixture) string { return f.createCategory("test", "file1.txt") },
 			input:    "s\n",
-			contains: []string{"no files have been selected yet"},
+			contains: []string{"No files have been selected yet"},
 		},
 		{
 			name: "ShowSelected_WithFiles",
@@ -345,7 +345,7 @@ func TestRunCategoryFlow(t *testing.T) {
 				return catPath
 			},
 			input:    "u\n",
-			contains: []string{"all files in this category have been selected"},
+			contains: []string{"All files in this category have been selected"},
 		},
 		{
 			name: "ShowUnselected_WithFiles",
@@ -371,13 +371,13 @@ func TestRunCategoryFlow(t *testing.T) {
 			name:     "Random_Keep",
 			setup:    func(f *testFixture) string { return f.createCategory("test", "file1.txt") },
 			input:    "r\nk\n",
-			contains: []string{"kept and cached"},
+			contains: []string{"Kept and cached"},
 		},
 		{
 			name:     "Random_Skip",
 			setup:    func(f *testFixture) string { return f.createCategory("test", "file1.txt", "file2.txt") },
 			input:    "r\ns\nq\n",
-			contains: []string{"skipped"},
+			contains: []string{"Skipped"},
 		},
 		{
 			name:     "Random_Quit",
@@ -465,7 +465,7 @@ func TestRandomAcrossAll(t *testing.T) {
 				return []string{f.createCategory("cat1", "file1.txt")}
 			},
 			input:    "k\n",
-			contains: []string{"kept and cached"},
+			contains: []string{"Kept and cached"},
 		},
 		{
 			name: "Skip",
@@ -473,7 +473,7 @@ func TestRandomAcrossAll(t *testing.T) {
 				return []string{f.createCategory("cat1", "file1.txt")}
 			},
 			input:    "s\n",
-			contains: []string{"skipped"},
+			contains: []string{"Skipped"},
 		},
 		{
 			name: "Quit",
@@ -550,7 +550,7 @@ func testShowSelectedAcrossAllEmpty(t *testing.T) {
 
 	err := showSelectedAcrossAll([]string{cat1}, f.cache, &stdout)
 	f.assertNoError(err)
-	f.assertOutputContains(stdout.String(), "no files have been selected yet")
+	f.assertOutputContains(stdout.String(), "No files have been selected yet")
 }
 
 func testShowSelectedAcrossAllWithFiles(t *testing.T) {
@@ -562,7 +562,7 @@ func testShowSelectedAcrossAllWithFiles(t *testing.T) {
 	err := showSelectedAcrossAll([]string{cat1}, f.cache, &stdout)
 	f.assertNoError(err)
 	output := stdout.String()
-	f.assertOutputContains(output, "Selected in cat1")
+	f.assertOutputContains(output, "Previously Selected Files")
 	f.assertOutputContains(output, "file1.txt")
 }
 
@@ -574,7 +574,7 @@ func testShowUnselectedAcrossAllAllSelected(t *testing.T) {
 
 	err := showUnselectedAcrossAll([]string{cat1}, f.cache, &stdout)
 	f.assertNoError(err)
-	f.assertOutputContains(stdout.String(), "all files in all categories have been selected")
+	f.assertOutputContains(stdout.String(), "All files in all categories have been selected")
 }
 
 func testShowUnselectedAcrossAllWithFiles(t *testing.T) {
@@ -586,6 +586,6 @@ func testShowUnselectedAcrossAllWithFiles(t *testing.T) {
 	err := showUnselectedAcrossAll([]string{cat1}, f.cache, &stdout)
 	f.assertNoError(err)
 	output := stdout.String()
-	f.assertOutputContains(output, "Unselected in cat1")
+	f.assertOutputContains(output, "Unselected Files")
 	f.assertOutputContains(output, "file2.txt")
 }

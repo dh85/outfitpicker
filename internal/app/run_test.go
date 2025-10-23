@@ -92,7 +92,7 @@ func TestRun_CategoryOptionFound(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "Category1", "r\nq\n")
 	assertNoError(t, err, "category option found")
-	assertOutputContains(t, output, "Category: Category1", "category flow")
+	assertOutputContains(t, output, "Category1", "category flow")
 }
 
 func TestRun_CategoryOptionNotFound(t *testing.T) {
@@ -106,8 +106,8 @@ func TestRun_NumericSelection_Valid(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "1\nr\nq\n")
 	assertNoError(t, err, "numeric selection")
-	assertOutputContains(t, output, "Categories:", "menu display")
-	assertOutputContains(t, output, "Category: Category1", "category flow")
+	assertOutputContains(t, output, "Categories", "menu display")
+	assertOutputContains(t, output, "Category1", "category flow")
 }
 
 func TestRun_NumericSelection_Invalid(t *testing.T) {
@@ -127,14 +127,14 @@ func TestRun_ShowSelectedAcrossAll(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "s\n")
 	assertNoError(t, err, "show selected across all")
-	assertOutputContains(t, output, "no files have been selected yet", "no selected files")
+	assertOutputContains(t, output, "No files have been selected yet", "no selected files")
 }
 
 func TestRun_ShowUnselectedAcrossAll(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "u\n")
 	assertNoError(t, err, "show unselected across all")
-	assertOutputContains(t, output, "Unselected in Category1", "unselected files")
+	assertOutputContains(t, output, "Category1", "unselected files")
 }
 
 func TestRun_Quit(t *testing.T) {
@@ -156,10 +156,10 @@ func TestRun_MenuDisplay(t *testing.T) {
 	assertNoError(t, err, "menu display")
 
 	expectedItems := []string{
-		"Categories:", "[1] Category1", "[2] Category2",
-		"All-categories options:", "[r] Select a random file",
-		"[s] Show previously selected", "[u] Show unselected",
-		"[q] Quit", "Enter a category number or option:",
+		"Categories", "1", "Category1", "2", "Category2",
+		"All-categories options", "r", "Select a random file",
+		"s", "Show previously selected", "u", "Show unselected",
+		"q", "Quit", "Enter a category number or option",
 	}
 
 	for _, item := range expectedItems {
@@ -171,7 +171,7 @@ func TestRun_CategoryCaseInsensitive(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "category1", "r\nq\n")
 	assertNoError(t, err, "case insensitive category")
-	assertOutputContains(t, output, "Category: Category1", "category flow")
+	assertOutputContains(t, output, "Category1", "category flow")
 }
 
 func TestRun_NumericSelectionEdgeCases(t *testing.T) {
@@ -215,7 +215,7 @@ func TestRun_WithSpacesInInput(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "  1  \nr\nq\n")
 	assertNoError(t, err, "spaces in input")
-	assertOutputContains(t, output, "Category: Category1", "category flow")
+	assertOutputContains(t, output, "Category1", "category flow")
 }
 
 func TestRun_NonNumericInput(t *testing.T) {

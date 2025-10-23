@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dh85/outfitpicker/internal/storage"
+	"github.com/dh85/outfitpicker/internal/ui"
 )
 
 // Category represents a category with its files and metadata
@@ -111,53 +112,36 @@ func (cm *CategoryManager) getAvailableFiles(category *Category) []string {
 
 func (cm *CategoryManager) displayCategoryInfo(category *Category) {
 	seen := cm.getSelectedFiles(category.Path)
-	fmt.Fprintf(cm.stdout, "\n📂 Category: %s\n", filepath.Base(category.Path))
-	fmt.Fprintf(cm.stdout, "Total files in %q: %d\n", filepath.Base(category.Path), len(category.Files))
-	fmt.Fprintf(cm.stdout, "Selected: %d of %d\n", len(seen), len(category.Files))
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.CategoryInfo(filepath.Base(category.Path), len(category.Files), len(seen))
 }
 
 func (cm *CategoryManager) displayMenu() {
-	fmt.Fprintln(cm.stdout, "\nOptions:")
-	fmt.Fprintln(cm.stdout, "[r] Select a random file in this category")
-	fmt.Fprintln(cm.stdout, "[s] Show previously selected files in this category")
-	fmt.Fprintln(cm.stdout, "[u] Show unselected files in this category")
-	fmt.Fprintln(cm.stdout, "[q] Quit")
-	fmt.Fprint(cm.stdout, "Enter your choice: ")
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.Menu()
 }
 
 func (cm *CategoryManager) showSelectedFiles(categoryPath string) {
 	seen := cm.getSelectedFiles(categoryPath)
-	if len(seen) == 0 {
-		fmt.Fprintln(cm.stdout, "\nno files have been selected yet for this category")
-		return
-	}
-
-	fmt.Fprintln(cm.stdout, "\n--- Previously Selected Files ---")
 	list := mapKeys(seen)
-	sort.Strings(list)
-	for _, fn := range list {
-		fmt.Fprintf(cm.stdout, " - %s\n", fn)
-	}
-	fmt.Fprintln(cm.stdout, "---------------------------------")
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.SelectedFiles(filepath.Base(categoryPath), list)
 }
 
 func (cm *CategoryManager) showUnselectedFiles(category *Category) {
-	fmt.Fprintln(cm.stdout, "\n--- Unselected Files ---")
 	unselected := cm.getUnselectedFiles(category)
-
-	if len(unselected) == 0 {
-		fmt.Fprintln(cm.stdout, "🎉 all files in this category have been selected")
-		return
-	}
-
-	for _, u := range unselected {
-		fmt.Fprintf(cm.stdout, " - %s\n", u)
-	}
-	fmt.Fprintln(cm.stdout, "------------------------")
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.UnselectedFiles(unselected)
 }
 
 func (cm *CategoryManager) handleKeepAction(file FileEntry) error {
-	fmt.Fprintf(cm.stdout, "✅ kept and cached: %s\n", file.FileName)
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.KeepAction(file.FileName)
 	cm.cache.Add(file.FileName, file.CategoryPath)
 
 	done, err := cm.isCategoryComplete(file.CategoryPath)
@@ -182,15 +166,9 @@ func (cm *CategoryManager) displayCompletionSummary(categoryPath string) {
 	}
 
 	completed, total, names := cm.getCompletionSummary(cats)
-	if completed == 0 {
-		fmt.Fprintf(cm.stdout, "categories complete: %d/%d\n", completed, total)
-	} else {
-		suffix := ""
-		if len(names) > 0 {
-			suffix = " — " + strings.Join(names, ", ")
-		}
-		fmt.Fprintf(cm.stdout, "categories complete: %d/%d%s\n", completed, total, suffix)
-	}
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.CompletionSummary(completed, total, names)
 }
 
 func (cm *CategoryManager) isCategoryComplete(catPath string) (bool, error) {
@@ -243,8 +221,9 @@ func (cm *CategoryManager) handleRandomSelection(category *Category, pr *prompte
 			FileName:     filepath.Base(randomFile),
 		}
 
-		fmt.Fprintf(cm.stdout, "\nRandomly selected: %s\n", file.FileName)
-		fmt.Fprint(cm.stdout, "Enter (k)eep, (s)kip, or (q)uit: ")
+		theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+		uiInstance := ui.NewUI(cm.stdout, theme)
+		uiInstance.RandomSelection(file.FileName)
 
 		action, err := pr.readLineLowerDefault("k")
 		if err != nil && !errors.Is(err, io.EOF) {
@@ -260,7 +239,9 @@ func (cm *CategoryManager) handleRandomSelection(category *Category, pr *prompte
 			cm.displayCompletionSummary(category.Path)
 			return nil
 		case "s":
-			fmt.Fprintln(cm.stdout, "⏩ skipped. selecting another...")
+			theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+			uiInstance := ui.NewUI(cm.stdout, theme)
+			uiInstance.SkipAction(file.FileName)
 			available = append(available[:idx], available[idx+1:]...)
 		case "q":
 			fmt.Fprintln(cm.stdout, "Exiting.")
@@ -311,9 +292,10 @@ func randomAcrossAll(categories []string, cache *storage.Manager, pr *prompter, 
 	}
 
 	file := pool[rand.Intn(len(pool))]
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(stdout, theme)
 	fmt.Fprintf(stdout, "\n📂 Category: %s\n", filepath.Base(file.CategoryPath))
-	fmt.Fprintf(stdout, "Randomly selected: %s\n", file.FileName)
-	fmt.Fprint(stdout, "Enter (k)eep, (s)kip, or (q)uit: ")
+	uiInstance.RandomSelection(file.FileName)
 
 	action, err := pr.readLineLowerDefault("k")
 	if err != nil && !errors.Is(err, io.EOF) {
@@ -329,7 +311,9 @@ func randomAcrossAll(categories []string, cache *storage.Manager, pr *prompter, 
 		completed, total, names := cm.getCompletionSummary(categories)
 		cm.displayCompletionSummaryFormatted(completed, total, names)
 	case "s":
-		fmt.Fprintln(stdout, "⏩ skipped. run again for another pick")
+		theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+		uiInstance := ui.NewUI(stdout, theme)
+		uiInstance.Info("Skipped. Run again for another pick")
 	case "q":
 		fmt.Fprintln(stdout, "Exiting.")
 	default:
@@ -361,18 +345,14 @@ func (cm *CategoryManager) buildFilePool(categories []string) []FileEntry {
 }
 
 func (cm *CategoryManager) displayCompletionSummaryFormatted(completed, total int, names []string) {
-	if completed == 0 {
-		fmt.Fprintf(cm.stdout, "categories complete: %d/%d\n", completed, total)
-	} else {
-		suffix := ""
-		if len(names) > 0 {
-			suffix = " — " + strings.Join(names, ", ")
-		}
-		fmt.Fprintf(cm.stdout, "categories complete: %d/%d%s\n", completed, total, suffix)
-	}
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance.CompletionSummary(completed, total, names)
 }
 
 func showSelectedAcrossAll(categories []string, cache *storage.Manager, stdout io.Writer) error {
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(stdout, theme)
 	m := cache.Load()
 	var total int
 
@@ -382,20 +362,18 @@ func showSelectedAcrossAll(categories []string, cache *storage.Manager, stdout i
 			continue
 		}
 		total += len(selected)
-		sort.Strings(selected)
-		fmt.Fprintf(stdout, "\n--- Selected in %s ---\n", filepath.Base(cat))
-		for _, s := range selected {
-			fmt.Fprintf(stdout, " - %s\n", s)
-		}
+		uiInstance.SelectedFiles(filepath.Base(cat), selected)
 	}
 
 	if total == 0 {
-		fmt.Fprintln(stdout, "\nno files have been selected yet across all categories")
+		uiInstance.Info("No files have been selected yet across all categories")
 	}
 	return nil
 }
 
 func showUnselectedAcrossAll(categories []string, cache *storage.Manager, stdout io.Writer) error {
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(stdout, theme)
 	m := cache.Load()
 	var hasUnselected bool
 
@@ -412,16 +390,13 @@ func showUnselectedAcrossAll(categories []string, cache *storage.Manager, stdout
 
 		if len(unselected) > 0 {
 			hasUnselected = true
-			sort.Strings(unselected)
-			fmt.Fprintf(stdout, "\n--- Unselected in %s ---\n", filepath.Base(cat))
-			for _, u := range unselected {
-				fmt.Fprintf(stdout, " - %s\n", u)
-			}
+			fmt.Fprintf(stdout, "\n📁 %s\n", filepath.Base(cat))
+			uiInstance.UnselectedFiles(unselected)
 		}
 	}
 
 	if !hasUnselected {
-		fmt.Fprintln(stdout, "\n🎉 all files in all categories have been selected")
+		uiInstance.Success("All files in all categories have been selected!")
 	}
 	return nil
 }
@@ -463,6 +438,18 @@ func categoryFileCount(catPath string) (int, error) {
 		}
 	}
 	return total, nil
+}
+
+// shouldUseColors determines if colors should be used based on environment
+func shouldUseColors() bool {
+	// Check if output is a terminal and colors are supported
+	if term := os.Getenv("TERM"); term == "dumb" || term == "" {
+		return false
+	}
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
+	return true
 }
 
 // Legacy functions for backward compatibility

@@ -8,6 +8,7 @@ import (
 
 	"github.com/dh85/outfitpicker/internal/app"
 	"github.com/dh85/outfitpicker/internal/cli"
+	"github.com/dh85/outfitpicker/internal/ui"
 	"github.com/dh85/outfitpicker/pkg/config"
 	"github.com/dh85/outfitpicker/pkg/version"
 )
@@ -34,7 +35,7 @@ func newRootCmd() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// handle --version (alternative to separate command)
 			if v, _ := cmd.Flags().GetBool("version"); v {
-				fmt.Fprintln(cmd.OutOrStdout(), version.Version)
+				fmt.Fprintln(cmd.OutOrStdout(), version.GetVersion())
 				return nil
 			}
 
@@ -53,7 +54,10 @@ func newRootCmd() *cobra.Command {
 				root = rootFlag
 			} else if cfg, err := config.Load(); err == nil && cfg.Root != "" {
 				root = cfg.Root
-				fmt.Fprintf(cmd.OutOrStdout(), "ℹ️ using root from config: %s\n", root)
+				// Use enhanced UI for info message
+				theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+				uiInstance := ui.NewUI(cmd.OutOrStdout(), theme)
+				uiInstance.Info(fmt.Sprintf("using root from config: %s", root))
 			} else {
 				r, err := cli.FirstRunWizard(cmd.InOrStdin(), cmd.OutOrStdout())
 				if err != nil {
@@ -76,6 +80,18 @@ func newRootCmd() *cobra.Command {
 	cmd.AddCommand(newCompletionCmd(cmd))
 
 	return cmd
+}
+
+// shouldUseColors determines if colors should be used based on environment
+func shouldUseColors() bool {
+	// Check if output is a terminal and colors are supported
+	if term := os.Getenv("TERM"); term == "dumb" || term == "" {
+		return false
+	}
+	if os.Getenv("NO_COLOR") != "" {
+		return false
+	}
+	return true
 }
 
 func newConfigCmd() *cobra.Command {
@@ -114,7 +130,10 @@ func newConfigCmd() *cobra.Command {
 			if err := config.Save(&config.Config{Root: args[0]}); err != nil {
 				return fmt.Errorf("failed to save config: %w", err)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "✅ saved default root")
+			// Use enhanced UI for success message
+			theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+			uiInstance := ui.NewUI(cmd.OutOrStdout(), theme)
+			uiInstance.Success("saved default root")
 			_ = cli.EnsureCacheAtRoot(args[0], cmd.OutOrStdout())
 			return nil
 		},
@@ -127,7 +146,10 @@ func newConfigCmd() *cobra.Command {
 			if err := config.Delete(); err != nil {
 				return fmt.Errorf("failed to reset config: %w", err)
 			}
-			fmt.Fprintln(cmd.OutOrStdout(), "✅ config reset")
+			// Use enhanced UI for success message
+			theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+			uiInstance := ui.NewUI(cmd.OutOrStdout(), theme)
+			uiInstance.Success("config reset")
 			return nil
 		},
 	})

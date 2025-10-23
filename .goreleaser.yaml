@@ -1,0 +1,156 @@
+version: 1
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: outfitpicker
+    main: ./cmd/outfitpicker
+    binary: outfitpicker
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/dh85/outfitpicker/pkg/version.Version={{.Version}}
+      - -X github.com/dh85/outfitpicker/pkg/version.Commit={{.Commit}}
+      - -X github.com/dh85/outfitpicker/pkg/version.Date={{.Date}}
+
+  - id: outfitpicker-admin
+    main: ./cmd/outfitpicker-admin
+    binary: outfitpicker-admin
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/dh85/outfitpicker/pkg/version.Version={{.Version}}
+      - -X github.com/dh85/outfitpicker/pkg/version.Commit={{.Commit}}
+      - -X github.com/dh85/outfitpicker/pkg/version.Date={{.Date}}
+
+archives:
+  - format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE*
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+
+release:
+  github:
+    owner: dh85
+    name: outfitpicker
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} v{{.Version}}"
+  header: |
+    ## Outfit Picker v{{.Version}}
+    
+    Interactive CLI to pick outfits from category folders with per-category rotation.
+  footer: |
+    ## Installation
+    
+    ### Binary Download
+    Download the appropriate binary for your platform from the assets above.
+    
+    ### Package Managers
+    ```bash
+    # Homebrew (macOS/Linux)
+    brew install dh85/tap/outfitpicker
+    
+    # Go install
+    go install github.com/dh85/outfitpicker/cmd/outfitpicker@latest
+    ```
+    
+    **Full Changelog**: https://github.com/dh85/outfitpicker/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+brews:
+  - name: outfitpicker
+    repository:
+      owner: dh85
+      name: homebrew-tap
+    directory: Formula
+    homepage: https://github.com/dh85/outfitpicker
+    description: Interactive CLI to pick outfits from category folders
+    license: MIT
+    install: |
+      bin.install "outfitpicker"
+      bin.install "outfitpicker-admin"
+    test: |
+      system "#{bin}/outfitpicker", "--version"
+
+nfpms:
+  - id: packages
+    package_name: outfitpicker
+    vendor: dh85
+    homepage: https://github.com/dh85/outfitpicker
+    maintainer: dh85 <email@example.com>
+    description: Interactive CLI to pick outfits from category folders
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/bin
+    contents:
+      - src: ./README.md
+        dst: /usr/share/doc/outfitpicker/README.md
+      - src: ./LICENSE
+        dst: /usr/share/doc/outfitpicker/LICENSE
+        file_info:
+          mode: 0644
+
+# dockers:
+#   - image_templates:
+#       - "ghcr.io/dh85/outfitpicker:{{ .Tag }}"
+#       - "ghcr.io/dh85/outfitpicker:latest"
+#     dockerfile: Dockerfile
+#     build_flag_templates:
+#       - "--pull"
+#       - "--label=org.opencontainers.image.created={{.Date}}"
+#       - "--label=org.opencontainers.image.title={{.ProjectName}}"
+#       - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+#       - "--label=org.opencontainers.image.version={{.Version}}"
+#       - "--platform=linux/amd64"
