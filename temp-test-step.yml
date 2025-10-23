@@ -1,0 +1,16 @@
+# Add this step to your existing macOS job temporarily
+- name: Test for flakiness (temporary)
+  if: runner.os == 'macOS'
+  run: |
+    echo "Testing for flakiness on macOS..."
+    for i in {1..100}; do
+      if [ $((i % 10)) -eq 0 ]; then
+        echo "Progress: $i/100"
+      fi
+      if ! go test ./cmd/outfitpicker ./cmd/outfitpicker-admin -timeout=30s > /dev/null 2>&1; then
+        echo "FAILURE at run $i"
+        go test ./cmd/outfitpicker ./cmd/outfitpicker-admin -v
+        exit 1
+      fi
+    done
+    echo "✅ All 100 runs passed!"

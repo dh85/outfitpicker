@@ -14,9 +14,11 @@ func TestErrorPaths(t *testing.T) {
 	}
 	
 	// Test Save with invalid directory by setting invalid config home
-	t.Setenv("XDG_CONFIG_HOME", "/dev/null/invalid")
 	if runtime.GOOS == "windows" {
-		t.Setenv("APPDATA", "NUL:\\invalid")
+		// On Windows, use a path that will definitely fail
+		t.Setenv("XDG_CONFIG_HOME", "Z:\\nonexistent\\invalid")
+	} else {
+		t.Setenv("XDG_CONFIG_HOME", "/dev/null/invalid")
 	}
 	
 	err := Save(&Config{Root: "/test"})
