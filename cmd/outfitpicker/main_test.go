@@ -218,6 +218,8 @@ func TestRootResolution(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup()
 			}
+			// Ensure cleanup after each subtest
+			defer config.Delete()
 
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
@@ -286,6 +288,7 @@ func TestConfigFromSaved(t *testing.T) {
 func TestConfigShowWithExistingConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer config.Delete()
 
 	// Save config first
 	testRoot := filepath.Join(tempDir, "test-root")
@@ -335,7 +338,9 @@ func TestConfigReset(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
 	// Save config first
-	config.Save(&config.Config{Root: "/test"})
+	testRoot := filepath.Join(tempDir, "test-config-root")
+	os.MkdirAll(testRoot, 0755)
+	config.Save(&config.Config{Root: testRoot})
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
