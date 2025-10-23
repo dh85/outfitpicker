@@ -267,7 +267,7 @@ func TestManualSelection(t *testing.T) {
 		{
 			name:           "select already selected file",
 			input:          "m\n1\n",
-			expectedOutput: []string{"Choose Your Outfit", "Shirts", "shirt1.jpg (already picked)", "You've already picked"},
+			expectedOutput: []string{"Choose Your Outfit", "Shirts", "shirt1.jpg", "already picked", "You've already picked"},
 		},
 		{
 			name:           "select uncategorized file",
