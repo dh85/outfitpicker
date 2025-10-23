@@ -120,9 +120,9 @@ func TestRun_RandomAcrossAll(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "r\nq\n")
 	assertNoError(t, err, "random across all")
-	// Check for either emoji version or plain text version
-	if !strings.Contains(output, "Randomly selected:") {
-		t.Fatalf("random selection: expected to contain 'Randomly selected:', got: %s", output)
+	// Check that a file was selected (should contain one of the test files)
+	if !strings.Contains(output, "file1.txt") && !strings.Contains(output, "file2.txt") && !strings.Contains(output, "file3.txt") {
+		t.Fatalf("random selection: expected to contain a selected file name, got: %s", output)
 	}
 }
 
