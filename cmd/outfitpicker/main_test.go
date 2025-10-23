@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -213,7 +214,14 @@ func TestRootResolution(t *testing.T) {
 				rootDir := filepath.Join(tempDir, "outfits")
 				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
 				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
-				config.Save(&config.Config{Root: rootDir})
+				// Ensure config save succeeds
+				if err := config.Save(&config.Config{Root: rootDir}); err != nil {
+					panic(fmt.Sprintf("failed to save config: %v", err))
+				}
+				// Verify config was saved
+				if cfg, err := config.Load(); err != nil || cfg.Root != rootDir {
+					panic(fmt.Sprintf("config not saved correctly: err=%v, root=%s", err, cfg.Root))
+				}
 				return rootDir
 			},
 		},
@@ -235,6 +243,7 @@ func TestRootResolution(t *testing.T) {
 			case "root flag":
 				args = []string{"--root", rootDir, "--category", "TestCat"}
 			case "config root":
+				// For config root test, don't specify root - let it load from config
 				args = []string{"--category", "TestCat"}
 			}
 
