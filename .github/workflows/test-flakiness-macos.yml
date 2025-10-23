@@ -17,22 +17,29 @@ jobs:
       with:
         go-version: '1.21'
     
-    - name: Run tests 100 times to check for flakiness
+    - name: Run all tests 100 times to check for flakiness
       run: |
-        echo "Running tests 100 times on macOS to verify stability..."
+        echo "Running ALL tests 100 times on macOS to verify stability..."
         FAILED=0
         for i in {1..100}; do
-          echo "Run $i/100"
-          if ! go test ./cmd/outfitpicker ./cmd/outfitpicker-admin -timeout=30s; then
+          if [ $((i % 10)) -eq 0 ]; then
+            echo "Progress: $i/100 runs completed"
+          fi
+          if ! go test ./... -timeout=60s > /dev/null 2>&1; then
             echo "❌ FAILURE at run $i"
+            echo "Re-running with verbose output to show failure:"
+            go test ./... -v -timeout=60s
             FAILED=$((FAILED + 1))
-            if [ $FAILED -gt 5 ]; then
-              echo "Too many failures, stopping"
+            if [ $FAILED -gt 3 ]; then
+              echo "Too many failures ($FAILED), stopping early"
               exit 1
             fi
           fi
         done
         echo "✅ Completed 100 runs with $FAILED failures"
         if [ $FAILED -eq 0 ]; then
-          echo "🎉 No flakiness detected!"
+          echo "🎉 No flakiness detected in any tests!"
+        else
+          echo "⚠️  Found $FAILED flaky test runs"
+          exit 1
         fi
