@@ -29,7 +29,13 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
 
     - name: Run tests
-      run: go test -race -coverprofile=coverage.out ./...
+      shell: bash
+      run: |
+        if [[ "${{ runner.os }}" == "Windows" ]]; then
+          go test -race ./...
+        else
+          go test -race -coverprofile=coverage.out ./...
+        fi
 
     - name: Upload coverage
       uses: codecov/codecov-action@v3

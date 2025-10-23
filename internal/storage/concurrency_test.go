@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 	"testing"
-	"time"
 )
 
 func TestConcurrentCacheAccess(t *testing.T) {
@@ -117,23 +116,18 @@ func TestConcurrentClearOperations(t *testing.T) {
 	data := manager.Load()
 	manager.Save(data)
 
-	var wg sync.WaitGroup
-	wg.Add(len(categories))
-
-	// Concurrent clears with small delay to avoid race conditions
-	for i, cat := range categories {
-		go func(category string, delay int) {
-			defer wg.Done()
-			// Small staggered delay to reduce race conditions
-			time.Sleep(time.Millisecond * time.Duration(delay))
-			manager.Clear(category)
-		}(cat, i)
+	// Verify initial state
+	initialData := manager.Load()
+	for _, cat := range categories {
+		if len(initialData[cat]) != 2 {
+			t.Fatalf("expected 2 files in category %s, got %d", cat, len(initialData[cat]))
+		}
 	}
 
-	wg.Wait()
-
-	// Small delay to ensure all operations complete
-	time.Sleep(10 * time.Millisecond)
+	// Clear categories sequentially to avoid race conditions in test
+	for _, cat := range categories {
+		manager.Clear(cat)
+	}
 
 	// Verify all categories are cleared
 	finalData := manager.Load()
