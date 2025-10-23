@@ -22,6 +22,7 @@ func TestNewRootCmd(t *testing.T) {
 func TestCacheShowCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer config.Delete()
 	
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -37,6 +38,7 @@ func TestCacheShowCommand(t *testing.T) {
 func TestCacheClearCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer config.Delete()
 	
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -66,6 +68,8 @@ func TestResolveRoot(t *testing.T) {
 func TestResolveRootFromConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	// Ensure clean state at start
+	config.Delete()
 	
 	// Save config
 	testRoot := filepath.Join(tempDir, "test-root")
@@ -117,9 +121,12 @@ func TestResolveRootErrors(t *testing.T) {
 	
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Ensure clean state
+			config.Delete()
 			if tt.setup != nil {
 				tt.setup()
 			}
+			defer config.Delete()
 			
 			_, err := resolveRoot("")
 			if err == nil {
