@@ -93,6 +93,11 @@ release:
   footer: |
     ## Installation
     
+    ### Quick Install
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/dh85/outfitpicker/main/install.sh | bash
+    ```
+    
     ### Binary Download
     Download the appropriate binary for your platform from the assets above.
     
@@ -101,6 +106,23 @@ release:
     # Homebrew (macOS/Linux)
     brew tap dh85/tap
     brew install outfitpicker
+    
+    # Debian/Ubuntu
+    wget https://github.com/dh85/outfitpicker/releases/download/{{ .Tag }}/outfitpicker_{{ .Version }}_linux_amd64.deb
+    sudo dpkg -i outfitpicker_{{ .Version }}_linux_amd64.deb
+    
+    # RHEL/CentOS/Fedora
+    wget https://github.com/dh85/outfitpicker/releases/download/{{ .Tag }}/outfitpicker_{{ .Version }}_linux_amd64.rpm
+    sudo rpm -i outfitpicker_{{ .Version }}_linux_amd64.rpm
+    
+    # Alpine Linux
+    wget https://github.com/dh85/outfitpicker/releases/download/{{ .Tag }}/outfitpicker_{{ .Version }}_linux_amd64.apk
+    sudo apk add --allow-untrusted outfitpicker_{{ .Version }}_linux_amd64.apk
+    
+    # Arch Linux
+    wget https://github.com/dh85/outfitpicker/releases/download/{{ .Tag }}/outfitpicker_{{ .Version }}_linux_amd64.pkg.tar.xz
+    sudo pacman -U outfitpicker_{{ .Version }}_linux_amd64.pkg.tar.xz
+    
     
     # Go install
     go install github.com/dh85/outfitpicker/cmd/outfitpicker@latest
@@ -124,17 +146,23 @@ brews:
     test: |
       system "#{bin}/outfitpicker", "--version"
 
+
+
 nfpms:
   - id: packages
     package_name: outfitpicker
     vendor: dh85
     homepage: https://github.com/dh85/outfitpicker
     maintainer: dh85 <email@example.com>
-    description: Interactive CLI to pick outfits from category folders
+    description: Interactive CLI to pick outfits from category folders with per-category rotation
     license: MIT
+    section: utils
+    priority: optional
     formats:
       - deb
       - rpm
+      - apk  # Alpine Linux
+      - archlinux  # Arch Linux
     bindir: /usr/bin
     contents:
       - src: ./README.md
@@ -143,6 +171,19 @@ nfpms:
         dst: /usr/share/doc/outfitpicker/LICENSE
         file_info:
           mode: 0644
+    # Package manager specific metadata
+    deb:
+      lintian_overrides:
+        - statically-linked-binary
+        - changelog-file-missing-in-native-package
+    rpm:
+      group: Applications/System
+      summary: Interactive CLI outfit picker
+    archlinux:
+      pkgbase: outfitpicker
+      packager: dh85 <email@example.com>
+
+
 
 # dockers:
 #   - image_templates:
