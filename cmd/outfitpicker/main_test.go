@@ -280,7 +280,9 @@ func TestNoConfigTrigger(t *testing.T) {
 
 func TestConfigFromSaved(t *testing.T) {
 	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	configDir := filepath.Join(tempDir, "config")
+	t.Setenv("XDG_CONFIG_HOME", configDir)
+	os.MkdirAll(configDir, 0755)
 	config.Delete() // Ensure clean state
 	defer config.Delete()
 
@@ -314,20 +316,26 @@ func TestConfigFromSaved(t *testing.T) {
 
 func TestConfigShowWithExistingConfig(t *testing.T) {
 	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	configDir := filepath.Join(tempDir, "config")
+	t.Setenv("XDG_CONFIG_HOME", configDir)
+	os.MkdirAll(configDir, 0755)
+	config.Delete() // Ensure clean state
 	defer config.Delete()
 
 	// Save config first
 	testRoot := filepath.Join(tempDir, "test-root")
 	os.MkdirAll(testRoot, 0755)
-	config.Save(&config.Config{Root: testRoot})
+	err := config.Save(&config.Config{Root: testRoot})
+	if err != nil {
+		t.Fatalf("failed to save config: %v", err)
+	}
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"config", "show"})
 
-	err := cmd.Execute()
+	err = cmd.Execute()
 	if err != nil {
 		t.Errorf("config show failed: %v", err)
 	}
@@ -340,7 +348,11 @@ func TestConfigShowWithExistingConfig(t *testing.T) {
 
 func TestConfigShowNonExistent(t *testing.T) {
 	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	configDir := filepath.Join(tempDir, "config")
+	t.Setenv("XDG_CONFIG_HOME", configDir)
+	os.MkdirAll(configDir, 0755)
+	config.Delete() // Ensure clean state
+	defer config.Delete()
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -353,28 +365,34 @@ func TestConfigShowNonExistent(t *testing.T) {
 	}
 
 	output := stdout.String()
-	// The command should either show "not found" or show the config if it exists// Both are valid behaviors depending on test isolation
-	if !strings.Contains(output, "not found") && !strings.Contains(output, "no such file") && !strings.Contains(output, "Config file not found") && !strings.Contains(output, "config file:") {
-		t.Errorf("expected config message, got: %s", output)
+	// The command should show "not found" since we ensured clean state
+	if !strings.Contains(output, "not found") {
+		t.Errorf("expected 'not found' message, got: %s", output)
 	}
 }
 
 func TestConfigReset(t *testing.T) {
 	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	configDir := filepath.Join(tempDir, "config")
+	t.Setenv("XDG_CONFIG_HOME", configDir)
+	os.MkdirAll(configDir, 0755)
+	config.Delete() // Ensure clean state
 	defer config.Delete()
 
 	// Save config first
 	testRoot := filepath.Join(tempDir, "test-config-root")
 	os.MkdirAll(testRoot, 0755)
-	config.Save(&config.Config{Root: testRoot})
+	err := config.Save(&config.Config{Root: testRoot})
+	if err != nil {
+		t.Fatalf("failed to save config: %v", err)
+	}
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"config", "reset"})
 
-	err := cmd.Execute()
+	err = cmd.Execute()
 	if err != nil {
 		t.Errorf("config reset failed: %v", err)
 	}
