@@ -6,7 +6,7 @@ import (
 )
 
 type MockCache struct {
-	Data   map[string][]string
+	Data    map[string][]string
 	SaveErr error
 }
 

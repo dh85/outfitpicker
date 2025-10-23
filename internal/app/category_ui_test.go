@@ -15,7 +15,7 @@ func TestCategoryManager_EnhancedUI(t *testing.T) {
 
 	// Create test category with files
 	beachPath := fixture.CreateCategory("Beach", "outfit1.jpg", "outfit2.jpg", "outfit3.jpg")
-	
+
 	cache := fixture.Cache
 
 	var buf bytes.Buffer

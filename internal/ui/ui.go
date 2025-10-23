@@ -62,7 +62,7 @@ func (u *UI) Header(title string) {
 		fmt.Fprintf(u.writer, "%s %s\n", u.icon(IconMenu), title)
 		return
 	}
-	
+
 	separator := strings.Repeat(IconSeparator, len(title)+4)
 	fmt.Fprintf(u.writer, "\n%s\n", u.colorize(separator, Cyan))
 	fmt.Fprintf(u.writer, "%s %s %s\n", u.colorize(IconSeparator, Cyan), u.colorize(title, Bold+Cyan), u.colorize(IconSeparator, Cyan))
@@ -79,7 +79,7 @@ func (u *UI) CategoryInfo(name string, totalFiles, selectedFiles int) {
 	fmt.Fprintf(u.writer, "\n%s %s\n", u.icon(IconFolder), u.colorize(name, Bold+Blue))
 	fmt.Fprintf(u.writer, "   %s Total files: %s\n", u.icon(IconFile), u.colorize(fmt.Sprintf("%d", totalFiles), Green))
 	fmt.Fprintf(u.writer, "   %s Selected: %s\n", u.icon(IconCheck), u.colorize(fmt.Sprintf("%d", selectedFiles), Yellow))
-	
+
 	if selectedFiles > 0 && totalFiles > 0 {
 		percentage := float64(selectedFiles) / float64(totalFiles) * 100
 		progressBar := u.createProgressBar(percentage, 20)
@@ -105,27 +105,27 @@ func (u *UI) Menu() {
 	}
 
 	for _, opt := range options {
-		fmt.Fprintf(u.writer, "  %s [%s] %s\n", 
-			u.icon(opt.icon), 
-			u.colorize(opt.key, Bold+Green), 
+		fmt.Fprintf(u.writer, "  %s [%s] %s\n",
+			u.icon(opt.icon),
+			u.colorize(opt.key, Bold+Green),
 			opt.desc)
 	}
-	fmt.Fprint(u.writer, "\n" + u.colorize("Enter your choice: ", Bold))
+	fmt.Fprint(u.writer, "\n"+u.colorize("Enter your choice: ", Bold))
 }
 
 // MainMenu displays the main category selection menu
 func (u *UI) MainMenu(categories []string) {
 	u.Header("Outfit Picker")
-	
+
 	fmt.Fprintf(u.writer, "%s %s\n", u.icon(IconFolder), u.colorize("Categories", Bold+Blue))
 	for i, c := range categories {
 		name := strings.TrimSuffix(c, "/")
 		if idx := strings.LastIndex(name, "/"); idx >= 0 {
 			name = name[idx+1:]
 		}
-		fmt.Fprintf(u.writer, "  [%s] %s %s\n", 
-			u.colorize(fmt.Sprintf("%d", i+1), Bold+Green), 
-			u.icon(IconFolder), 
+		fmt.Fprintf(u.writer, "  [%s] %s %s\n",
+			u.colorize(fmt.Sprintf("%d", i+1), Bold+Green),
+			u.icon(IconFolder),
 			name)
 	}
 
@@ -140,19 +140,19 @@ func (u *UI) MainMenu(categories []string) {
 	}
 
 	for _, opt := range globalOptions {
-		fmt.Fprintf(u.writer, "  [%s] %s %s\n", 
-			u.colorize(opt.key, Bold+Green), 
-			u.icon(opt.icon), 
+		fmt.Fprintf(u.writer, "  [%s] %s %s\n",
+			u.colorize(opt.key, Bold+Green),
+			u.icon(opt.icon),
 			opt.desc)
 	}
-	fmt.Fprint(u.writer, "\n" + u.colorize("Enter a category number or option: ", Bold))
+	fmt.Fprint(u.writer, "\n"+u.colorize("Enter a category number or option: ", Bold))
 }
 
 // SelectedFiles displays previously selected files
 func (u *UI) SelectedFiles(categoryName string, files []string) {
 	if len(files) == 0 {
-		fmt.Fprintf(u.writer, "\n%s %s\n", 
-			u.icon(IconInfo), 
+		fmt.Fprintf(u.writer, "\n%s %s\n",
+			u.icon(IconInfo),
 			u.colorize("No files have been selected yet for this category", Yellow))
 		return
 	}
@@ -160,9 +160,9 @@ func (u *UI) SelectedFiles(categoryName string, files []string) {
 	if u.theme.Compact {
 		fmt.Fprintf(u.writer, "\nSelected (%d):\n", len(files))
 	} else {
-		fmt.Fprintf(u.writer, "\n%s %s (%d files)\n", 
-			u.icon(IconCheck), 
-			u.colorize("Previously Selected Files", Bold+Green), 
+		fmt.Fprintf(u.writer, "\n%s %s (%d files)\n",
+			u.icon(IconCheck),
+			u.colorize("Previously Selected Files", Bold+Green),
 			len(files))
 	}
 
@@ -171,9 +171,9 @@ func (u *UI) SelectedFiles(categoryName string, files []string) {
 		if u.theme.Compact {
 			fmt.Fprintf(u.writer, "  %d. %s\n", i+1, f)
 		} else {
-			fmt.Fprintf(u.writer, "  %s %s %s\n", 
-				u.icon(IconBullet), 
-				u.icon(IconFile), 
+			fmt.Fprintf(u.writer, "  %s %s %s\n",
+				u.icon(IconBullet),
+				u.icon(IconFile),
 				f)
 		}
 	}
@@ -182,8 +182,8 @@ func (u *UI) SelectedFiles(categoryName string, files []string) {
 // UnselectedFiles displays unselected files
 func (u *UI) UnselectedFiles(files []string) {
 	if len(files) == 0 {
-		fmt.Fprintf(u.writer, "\n%s %s\n", 
-			u.icon(IconSuccess), 
+		fmt.Fprintf(u.writer, "\n%s %s\n",
+			u.icon(IconSuccess),
 			u.colorize("All files in this category have been selected!", Green))
 		return
 	}
@@ -191,9 +191,9 @@ func (u *UI) UnselectedFiles(files []string) {
 	if u.theme.Compact {
 		fmt.Fprintf(u.writer, "\nUnselected (%d):\n", len(files))
 	} else {
-		fmt.Fprintf(u.writer, "\n%s %s (%d files)\n", 
-			u.icon(IconFile), 
-			u.colorize("Unselected Files", Bold+Yellow), 
+		fmt.Fprintf(u.writer, "\n%s %s (%d files)\n",
+			u.icon(IconFile),
+			u.colorize("Unselected Files", Bold+Yellow),
 			len(files))
 	}
 
@@ -201,9 +201,9 @@ func (u *UI) UnselectedFiles(files []string) {
 		if u.theme.Compact {
 			fmt.Fprintf(u.writer, "  %d. %s\n", i+1, f)
 		} else {
-			fmt.Fprintf(u.writer, "  %s %s %s\n", 
-				u.icon(IconBullet), 
-				u.icon(IconFile), 
+			fmt.Fprintf(u.writer, "  %s %s %s\n",
+				u.icon(IconBullet),
+				u.icon(IconFile),
 				f)
 		}
 	}
@@ -211,34 +211,34 @@ func (u *UI) UnselectedFiles(files []string) {
 
 // RandomSelection displays random selection prompt
 func (u *UI) RandomSelection(filename string) {
-	fmt.Fprintf(u.writer, "\n%s %s: %s\n", 
-		u.icon(IconRandom), 
-		u.colorize("Randomly selected", Bold+Magenta), 
+	fmt.Fprintf(u.writer, "\n%s %s: %s\n",
+		u.icon(IconRandom),
+		u.colorize("Randomly selected", Bold+Magenta),
 		u.colorize(filename, Bold+Cyan))
 	fmt.Fprint(u.writer, u.colorize("Enter (k)eep, (s)kip, or (q)uit: ", Bold))
 }
 
 // KeepAction displays keep confirmation
 func (u *UI) KeepAction(filename string) {
-	fmt.Fprintf(u.writer, "%s %s: %s\n", 
-		u.icon(IconCheck), 
-		u.colorize("Kept and cached", Green), 
+	fmt.Fprintf(u.writer, "%s %s: %s\n",
+		u.icon(IconCheck),
+		u.colorize("Kept and cached", Green),
 		filename)
 }
 
 // SkipAction displays skip confirmation
 func (u *UI) SkipAction(filename string) {
-	fmt.Fprintf(u.writer, "%s %s: %s\n", 
-		u.icon(IconWarning), 
-		u.colorize("Skipped", Yellow), 
+	fmt.Fprintf(u.writer, "%s %s: %s\n",
+		u.icon(IconWarning),
+		u.colorize("Skipped", Yellow),
 		filename)
 }
 
 // CompletionSummary displays completion status
 func (u *UI) CompletionSummary(completed, total int, names []string) {
 	if completed == 0 {
-		fmt.Fprintf(u.writer, "%s Categories complete: %s\n", 
-			u.icon(IconInfo), 
+		fmt.Fprintf(u.writer, "%s Categories complete: %s\n",
+			u.icon(IconInfo),
 			u.colorize(fmt.Sprintf("%d/%d", completed, total), Yellow))
 		return
 	}
@@ -247,44 +247,44 @@ func (u *UI) CompletionSummary(completed, total int, names []string) {
 	if len(names) > 0 {
 		suffix = " — " + strings.Join(names, ", ")
 	}
-	
+
 	color := Yellow
 	if completed == total {
 		color = Green
 	}
-	
-	fmt.Fprintf(u.writer, "%s Categories complete: %s%s\n", 
-		u.icon(IconCheck), 
-		u.colorize(fmt.Sprintf("%d/%d", completed, total), color), 
+
+	fmt.Fprintf(u.writer, "%s Categories complete: %s%s\n",
+		u.icon(IconCheck),
+		u.colorize(fmt.Sprintf("%d/%d", completed, total), color),
 		suffix)
 }
 
 // Error displays error messages
 func (u *UI) Error(message string) {
-	fmt.Fprintf(u.writer, "%s %s: %s\n", 
-		u.icon(IconCross), 
-		u.colorize("Error", Bold+Red), 
+	fmt.Fprintf(u.writer, "%s %s: %s\n",
+		u.icon(IconCross),
+		u.colorize("Error", Bold+Red),
 		message)
 }
 
 // Success displays success messages
 func (u *UI) Success(message string) {
-	fmt.Fprintf(u.writer, "%s %s\n", 
-		u.icon(IconCheck), 
+	fmt.Fprintf(u.writer, "%s %s\n",
+		u.icon(IconCheck),
 		u.colorize(message, Green))
 }
 
 // Info displays info messages
 func (u *UI) Info(message string) {
-	fmt.Fprintf(u.writer, "%s %s\n", 
-		u.icon(IconInfo), 
+	fmt.Fprintf(u.writer, "%s %s\n",
+		u.icon(IconInfo),
 		message)
 }
 
 // Warning displays warning messages
 func (u *UI) Warning(message string) {
-	fmt.Fprintf(u.writer, "%s %s\n", 
-		u.icon(IconWarning), 
+	fmt.Fprintf(u.writer, "%s %s\n",
+		u.icon(IconWarning),
 		u.colorize(message, Yellow))
 }
 
@@ -318,7 +318,7 @@ func (u *UI) createProgressBar(percentage float64, width int) string {
 		filled := int(percentage / 100 * float64(width))
 		return "[" + strings.Repeat("=", filled) + strings.Repeat("-", width-filled) + "]"
 	}
-	
+
 	filled := int(percentage / 100 * float64(width))
 	bar := strings.Repeat("█", filled) + strings.Repeat("░", width-filled)
 	return u.colorize("["+bar+"]", Green)

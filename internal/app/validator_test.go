@@ -9,7 +9,7 @@ import (
 func TestValidator_ValidateRootPath(t *testing.T) {
 	validator := NewValidator()
 	tempDir := t.TempDir()
-	
+
 	tests := []struct {
 		name      string
 		path      string
@@ -33,7 +33,7 @@ func TestValidator_ValidateRootPath(t *testing.T) {
 			if tt.setup != nil {
 				path = tt.setup()
 			}
-			
+
 			err := validator.ValidateRootPath(path)
 			if tt.wantError && err == nil {
 				t.Error("expected error")
@@ -47,7 +47,7 @@ func TestValidator_ValidateRootPath(t *testing.T) {
 
 func TestValidator_ValidateUserAction(t *testing.T) {
 	validator := NewValidator()
-	
+
 	tests := []struct {
 		action    string
 		wantError bool
@@ -78,7 +78,7 @@ func TestValidator_ValidateUserAction(t *testing.T) {
 
 func TestValidator_ValidateCategoryName(t *testing.T) {
 	validator := NewValidator()
-	
+
 	tests := []struct {
 		name      string
 		wantError bool

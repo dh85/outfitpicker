@@ -24,7 +24,7 @@ func NewTestFixture(t *testing.T) *TestFixture {
 	if err != nil {
 		t.Fatalf("failed to create cache manager: %v", err)
 	}
-	
+
 	return &TestFixture{
 		T:       t,
 		TempDir: tempDir,
@@ -38,13 +38,13 @@ func (f *TestFixture) CreateCategory(name string, files ...string) string {
 	if err := os.MkdirAll(catPath, 0755); err != nil {
 		f.T.Fatalf("failed to create category %s: %v", name, err)
 	}
-	
+
 	for _, file := range files {
 		if err := f.CreateFile(catPath, file); err != nil {
 			f.T.Fatalf("failed to create file %s: %v", file, err)
 		}
 	}
-	
+
 	return catPath
 }
 
@@ -59,7 +59,7 @@ func (f *TestFixture) AssertError(err error, expectedTexts ...string) {
 	if err == nil {
 		f.T.Fatal("expected error but got none")
 	}
-	
+
 	for _, expected := range expectedTexts {
 		if !strings.Contains(err.Error(), expected) {
 			f.T.Errorf("expected error to contain %q, got: %v", expected, err)
@@ -118,11 +118,11 @@ func (f *TestFixture) CreateTestStructure() map[string][]string {
 		"Formal": {"suit.jpg", "dress.jpg", "heels.jpg"},
 		"Casual": {"jeans.jpg", "tshirt.jpg"},
 	}
-	
+
 	for category, files := range structure {
 		f.CreateCategory(category, files...)
 	}
-	
+
 	return structure
 }
 

@@ -32,14 +32,14 @@ func TestFirstRunWizardEdgeCases(t *testing.T) {
 			setup: func(t *testing.T) string { return "" },
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Setenv("XDG_CONFIG_HOME", t.TempDir())
-			
+
 			stdin := strings.NewReader(tt.input)
 			var stdout bytes.Buffer
-			
+
 			_, err := FirstRunWizard(stdin, &stdout)
 			// These should either succeed or fail gracefully
 			if err != nil && !strings.Contains(err.Error(), "no input provided") {
@@ -76,18 +76,18 @@ func TestExpandUserHomeEdgeCases(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(t)
 			}
-			
+
 			result, err := ExpandUserHome(tt.input)
 			if err != nil {
 				t.Errorf("ExpandUserHome failed: %v", err)
 			}
-			
+
 			if tt.expected != "" && result != tt.expected {
 				t.Errorf("expected %s, got %s", tt.expected, result)
 			}
@@ -99,13 +99,13 @@ func TestWindowsSpecificBehavior(t *testing.T) {
 	if runtime.GOOS != "windows" {
 		t.Skip("Skipping Windows-specific test")
 	}
-	
+
 	// Test that tilde expansion is skipped on Windows
 	result, err := ExpandUserHome("~/test")
 	if err != nil {
 		t.Errorf("ExpandUserHome failed on Windows: %v", err)
 	}
-	
+
 	if result != "~/test" {
 		t.Errorf("expected tilde to be preserved on Windows, got: %s", result)
 	}
@@ -151,12 +151,12 @@ func TestReadLineEdgeCases(t *testing.T) {
 			wantErr:  false,
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			reader := bufio.NewReader(strings.NewReader(tt.input))
 			result, err := readLine(reader)
-			
+
 			if tt.wantErr && err == nil {
 				t.Error("expected error but got none")
 			}
@@ -174,16 +174,16 @@ func TestHandlePathPermissionErrors(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping permission test on Windows")
 	}
-	
+
 	tempDir := t.TempDir()
 	restrictedDir := filepath.Join(tempDir, "restricted")
-	os.MkdirAll(restrictedDir, 0000) // No permissions
+	os.MkdirAll(restrictedDir, 0000)    // No permissions
 	defer os.Chmod(restrictedDir, 0755) // Restore for cleanup
-	
+
 	// Test that wizard handles permission errors gracefully
 	stdin := strings.NewReader(restrictedDir + "\nn\n" + tempDir + "\ny\n")
 	var stdout bytes.Buffer
-	
+
 	_, err := FirstRunWizard(stdin, &stdout)
 	if err != nil {
 		t.Errorf("wizard should handle permission errors gracefully: %v", err)
@@ -208,7 +208,7 @@ func TestIsYesResponseVariations(t *testing.T) {
 		{"maybe", false},
 		{"yep", false},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
 			result := isYesResponse(tt.input)
@@ -222,12 +222,12 @@ func TestIsYesResponseVariations(t *testing.T) {
 func TestPrintWelcomeMessagePlatforms(t *testing.T) {
 	var stdout bytes.Buffer
 	printWelcomeMessage(&stdout)
-	
+
 	output := stdout.String()
 	if !strings.Contains(output, "Welcome to outfitpicker") {
 		t.Error("welcome message should mention first time running")
 	}
-	
+
 	// Should contain platform-appropriate example
 	if runtime.GOOS == "windows" {
 		if !strings.Contains(output, "C:\\") {

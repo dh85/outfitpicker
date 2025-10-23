@@ -6,7 +6,7 @@ import (
 )
 
 type Metrics struct {
-	mu sync.RWMutex
+	mu       sync.RWMutex
 	counters map[string]int64
 	timers   map[string]time.Duration
 }

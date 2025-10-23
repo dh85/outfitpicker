@@ -13,7 +13,7 @@ import (
 
 func TestNewRootCmd(t *testing.T) {
 	cmd := newRootCmd()
-	
+
 	if cmd.Use != "outfitpicker-admin" {
 		t.Errorf("expected Use to be 'outfitpicker-admin', got %s", cmd.Use)
 	}
@@ -23,12 +23,12 @@ func TestCacheShowCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 	defer config.Delete()
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "show", "--root", tempDir})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("cache show command failed: %v", err)
@@ -39,12 +39,12 @@ func TestCacheClearCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 	defer config.Delete()
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "clear", "--all", "--root", tempDir})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("cache clear command failed: %v", err)
@@ -54,7 +54,7 @@ func TestCacheClearCommand(t *testing.T) {
 func TestResolveRoot(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	// Test with explicit root
 	root, err := resolveRoot(tempDir)
 	if err != nil {
@@ -71,21 +71,21 @@ func TestResolveRootFromConfig(t *testing.T) {
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
 	os.MkdirAll(configDir, 0755)
-	
+
 	// Ensure completely clean state
 	config.Delete()
 	defer config.Delete()
-	
+
 	// Create unique test root path
 	testRoot := filepath.Join(tempDir, "unique-test-root")
 	os.MkdirAll(testRoot, 0755)
-	
+
 	// Save config
 	err := config.Save(&config.Config{Root: testRoot})
 	if err != nil {
 		t.Fatalf("failed to save config: %v", err)
 	}
-	
+
 	// Test resolveRoot without override should use config
 	root, err := resolveRoot("")
 	if err != nil {
@@ -99,10 +99,10 @@ func TestResolveRootFromConfig(t *testing.T) {
 func TestResolveRootErrors(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	tests := []struct {
-		name string
-		setup func()
+		name          string
+		setup         func()
 		expectedError string
 	}{
 		{
@@ -113,7 +113,7 @@ func TestResolveRootErrors(t *testing.T) {
 			expectedError: "config has empty root",
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Ensure clean state
@@ -122,7 +122,7 @@ func TestResolveRootErrors(t *testing.T) {
 				tt.setup()
 			}
 			defer config.Delete()
-			
+
 			_, err := resolveRoot("")
 			if err == nil {
 				t.Error("expected error")
@@ -138,7 +138,7 @@ func TestVersionFlag(t *testing.T) {
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"--version"})
-	
+
 	// This should exit, so we expect it to not return normally
 	// We'll test the PersistentPreRunE instead
 	cmd.PersistentPreRunE(cmd, []string{})
@@ -147,11 +147,11 @@ func TestVersionFlag(t *testing.T) {
 func TestConfigCommands(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	tests := []struct {
-		name string
-		args []string
-		setup func()
+		name        string
+		args        []string
+		setup       func()
 		expectError bool
 	}{
 		{
@@ -181,7 +181,7 @@ func TestConfigCommands(t *testing.T) {
 			},
 		},
 	}
-	
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
@@ -189,12 +189,12 @@ func TestConfigCommands(t *testing.T) {
 			}
 			// Ensure cleanup after each subtest
 			defer config.Delete()
-			
+
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
 			cmd.SetOut(&stdout)
 			cmd.SetArgs(tt.args)
-			
+
 			err := cmd.Execute()
 			if tt.expectError && err == nil {
 				t.Error("expected error")
@@ -208,21 +208,21 @@ func TestConfigCommands(t *testing.T) {
 func TestCacheShowEmpty(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	// Create empty root
 	rootDir := filepath.Join(tempDir, "root")
 	os.MkdirAll(rootDir, 0755)
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "show", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("cache show failed: %v", err)
 	}
-	
+
 	output := stdout.String()
 	if !strings.Contains(output, "(empty)") {
 		t.Error("expected empty cache message")
@@ -236,35 +236,35 @@ func TestCacheShowWithData(t *testing.T) {
 	os.MkdirAll(configDir, 0755)
 	config.Delete() // Ensure clean state
 	defer config.Delete()
-	
+
 	// Create root with cache data
 	rootDir := filepath.Join(tempDir, "root")
 	os.MkdirAll(rootDir, 0755) // Ensure root directory exists
-	
+
 	mgr, err := storage.NewManager(rootDir)
 	if err != nil {
 		t.Fatalf("failed to create storage manager: %v", err)
 	}
-	
+
 	// Add data - this automatically saves
 	mgr.Add("test.jpg", filepath.Join(rootDir, "TestCat"))
-	
+
 	// Verify cache was created
 	data := mgr.Load()
 	if len(data) == 0 {
 		t.Fatal("cache data was not saved")
 	}
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "show", "--root", rootDir})
-	
+
 	err = cmd.Execute()
 	if err != nil {
 		t.Errorf("cache show failed: %v", err)
 	}
-	
+
 	output := stdout.String()
 	if !strings.Contains(output, "TestCat") {
 		t.Errorf("expected category in output, got: %s", output)
@@ -277,28 +277,28 @@ func TestCacheShowWithData(t *testing.T) {
 func TestCacheClearAll(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	// Create root with cache data
 	rootDir := filepath.Join(tempDir, "root")
 	mgr, _ := storage.NewManager(rootDir)
 	mgr.Add("test1.jpg", filepath.Join(rootDir, "Cat1"))
 	mgr.Add("test2.jpg", filepath.Join(rootDir, "Cat2"))
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "clear", "--all", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("cache clear all failed: %v", err)
 	}
-	
+
 	output := stdout.String()
 	if !strings.Contains(output, "cleared cache for all") {
 		t.Error("expected clear all confirmation")
 	}
-	
+
 	// Verify cache is empty
 	data := mgr.Load()
 	if len(data) != 0 {
@@ -309,21 +309,21 @@ func TestCacheClearAll(t *testing.T) {
 func TestCacheClearAllEmpty(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	// Create empty root
 	rootDir := filepath.Join(tempDir, "root")
 	os.MkdirAll(rootDir, 0755)
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "clear", "--all", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("cache clear all failed: %v", err)
 	}
-	
+
 	output := stdout.String()
 	if !strings.Contains(output, "already empty") {
 		t.Error("expected already empty message")
@@ -333,22 +333,22 @@ func TestCacheClearAllEmpty(t *testing.T) {
 func TestCacheClearCategory(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	// Create root with cache data
 	rootDir := filepath.Join(tempDir, "root")
 	mgr, _ := storage.NewManager(rootDir)
 	mgr.Add("test.jpg", filepath.Join(rootDir, "TestCat"))
-	
+
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "clear", "TestCat", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Errorf("cache clear category failed: %v", err)
 	}
-	
+
 	output := stdout.String()
 	if !strings.Contains(output, "cleared cache for \"TestCat\"") {
 		t.Error("expected clear category confirmation")
@@ -358,22 +358,22 @@ func TestCacheClearCategory(t *testing.T) {
 func TestCacheClearCategoryNotFound(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	// Create root with different cache data
 	rootDir := filepath.Join(tempDir, "root")
 	mgr, _ := storage.NewManager(rootDir)
 	mgr.Add("test.jpg", filepath.Join(rootDir, "OtherCat"))
-	
+
 	cmd := newRootCmd()
 	var stderr bytes.Buffer
 	cmd.SetErr(&stderr)
 	cmd.SetArgs([]string{"cache", "clear", "NonExistent", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("expected error for non-existent category")
 	}
-	
+
 	if !strings.Contains(err.Error(), "not found in cache") {
 		t.Errorf("expected 'not found' error, got: %v", err)
 	}
@@ -382,20 +382,20 @@ func TestCacheClearCategoryNotFound(t *testing.T) {
 func TestCacheClearNoArgs(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	rootDir := filepath.Join(tempDir, "root")
 	os.MkdirAll(rootDir, 0755)
-	
+
 	cmd := newRootCmd()
 	var stderr bytes.Buffer
 	cmd.SetErr(&stderr)
 	cmd.SetArgs([]string{"cache", "clear", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("expected error for missing category argument")
 	}
-	
+
 	if !strings.Contains(err.Error(), "provide a category name") {
 		t.Errorf("expected 'provide category' error, got: %v", err)
 	}
@@ -404,20 +404,20 @@ func TestCacheClearNoArgs(t *testing.T) {
 func TestCacheClearEmptyCache(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	
+
 	rootDir := filepath.Join(tempDir, "root")
 	os.MkdirAll(rootDir, 0755)
-	
+
 	cmd := newRootCmd()
 	var stderr bytes.Buffer
 	cmd.SetErr(&stderr)
 	cmd.SetArgs([]string{"cache", "clear", "TestCat", "--root", rootDir})
-	
+
 	err := cmd.Execute()
 	if err == nil {
 		t.Error("expected error for empty cache")
 	}
-	
+
 	if !strings.Contains(err.Error(), "no categories found in cache") {
 		t.Errorf("expected 'no categories' error, got: %v", err)
 	}

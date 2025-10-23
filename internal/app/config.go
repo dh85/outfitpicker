@@ -5,14 +5,14 @@ type AppConfig struct {
 	// File filtering
 	ExcludedDirs     []string
 	HiddenFilePrefix string
-	
+
 	// Display options
-	ShowEmojis       bool
-	ShowProgress     bool
-	
+	ShowEmojis   bool
+	ShowProgress bool
+
 	// Behavior
-	DefaultAction    string
-	AutoClearCache   bool
+	DefaultAction  string
+	AutoClearCache bool
 }
 
 // DefaultAppConfig returns sensible defaults

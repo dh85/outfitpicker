@@ -98,29 +98,26 @@ release:
     
     ### Package Managers
     ```bash
-    # Homebrew (macOS/Linux)
-    brew install dh85/tap/outfitpicker
-    
     # Go install
     go install github.com/dh85/outfitpicker/cmd/outfitpicker@latest
     ```
     
     **Full Changelog**: https://github.com/dh85/outfitpicker/compare/{{ .PreviousTag }}...{{ .Tag }}
 
-brews:
-  - name: outfitpicker
-    repository:
-      owner: dh85
-      name: homebrew-tap
-    directory: Formula
-    homepage: https://github.com/dh85/outfitpicker
-    description: Interactive CLI to pick outfits from category folders
-    license: MIT
-    install: |
-      bin.install "outfitpicker"
-      bin.install "outfitpicker-admin"
-    test: |
-      system "#{bin}/outfitpicker", "--version"
+# brews:
+#   - name: outfitpicker
+#     repository:
+#       owner: dh85
+#       name: homebrew-tap
+#     directory: Formula
+#     homepage: https://github.com/dh85/outfitpicker
+#     description: Interactive CLI to pick outfits from category folders
+#     license: MIT
+#     install: |
+#       bin.install "outfitpicker"
+#       bin.install "outfitpicker-admin"
+#     test: |
+#       system "#{bin}/outfitpicker", "--version"
 
 nfpms:
   - id: packages

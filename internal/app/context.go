@@ -4,17 +4,17 @@ import (
 	"context"
 	"io"
 	"time"
-	
+
 	"github.com/dh85/outfitpicker/internal/storage"
 )
 
 // AppContext holds application context and dependencies
 type AppContext struct {
-	ctx      context.Context
-	config   AppConfig
-	logger   *Logger
-	cache    *storage.Manager
-	stdout   io.Writer
+	ctx       context.Context
+	config    AppConfig
+	logger    *Logger
+	cache     *storage.Manager
+	stdout    io.Writer
 	optimizer *CacheOptimizer
 }
 

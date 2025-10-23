@@ -21,8 +21,6 @@ func NewDisplay(writer io.Writer, config AppConfig) *Display {
 	return &Display{ui: ui.NewUI(writer, theme)}
 }
 
-
-
 // CategoryInfo displays category information
 func (d *Display) CategoryInfo(name string, totalFiles, selectedFiles int) {
 	d.ui.CategoryInfo(name, totalFiles, selectedFiles)

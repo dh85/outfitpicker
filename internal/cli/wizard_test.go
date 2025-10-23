@@ -204,7 +204,7 @@ func TestFirstRunWizard_CreateDirectoryError(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping permission test on Windows")
 	}
-	
+
 	root := t.TempDir()
 	readOnlyDir := filepath.Join(root, "readonly")
 	os.MkdirAll(readOnlyDir, 0o555)
@@ -222,7 +222,7 @@ func TestFirstRunWizard_StatError(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("Skipping permission test on Windows")
 	}
-	
+
 	root := t.TempDir()
 	restrictedDir := filepath.Join(root, "restricted")
 	os.MkdirAll(restrictedDir, 0o000)

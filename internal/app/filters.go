@@ -15,7 +15,7 @@ func (f FileFilter) IsValidFile(entry os.DirEntry) bool {
 
 // IsValidCategory checks if a directory should be included as a category
 func (f FileFilter) IsValidCategory(entry os.DirEntry) bool {
-	return entry.IsDir() && 
-		   !strings.HasPrefix(entry.Name(), HiddenFilePrefix) && 
-		   !strings.EqualFold(entry.Name(), ExcludedDir)
+	return entry.IsDir() &&
+		!strings.HasPrefix(entry.Name(), HiddenFilePrefix) &&
+		!strings.EqualFold(entry.Name(), ExcludedDir)
 }

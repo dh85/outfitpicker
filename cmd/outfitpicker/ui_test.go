@@ -76,14 +76,14 @@ func TestEnhancedUIMessages(t *testing.T) {
 			cmd := tt.setupCmd()
 			cmd.SetOut(&buf)
 			cmd.SetErr(&buf)
-			
+
 			if len(tt.args) > 0 {
 				cmd.SetArgs(tt.args)
 			}
-			
+
 			// Don't fail on execution errors for this test
 			_ = cmd.Execute()
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if expected != "" && !strings.Contains(output, expected) {
@@ -101,12 +101,12 @@ func TestUIIntegration(t *testing.T) {
 	cmd.SetOut(&buf)
 	cmd.SetErr(&buf)
 	cmd.SetArgs([]string{"--help"})
-	
+
 	err := cmd.Execute()
 	if err != nil {
 		t.Fatalf("help command failed: %v", err)
 	}
-	
+
 	output := buf.String()
 	expectedHelp := []string{
 		"outfitpicker",
@@ -116,7 +116,7 @@ func TestUIIntegration(t *testing.T) {
 		"--set-root",
 		"--version",
 	}
-	
+
 	for _, expected := range expectedHelp {
 		if !strings.Contains(output, expected) {
 			t.Errorf("expected help to contain %q", expected)
@@ -147,13 +147,13 @@ func TestConfigCommandsWithUI(t *testing.T) {
 			// Set up clean test environment
 			tempDir := t.TempDir()
 			t.Setenv("XDG_CONFIG_HOME", tempDir)
-			
+
 			var buf bytes.Buffer
 			cmd := newRootCmd()
 			cmd.SetOut(&buf)
 			cmd.SetErr(&buf)
 			cmd.SetArgs(tt.args)
-			
+
 			err := cmd.Execute()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("expected error: %v, got: %v", tt.wantErr, err)
@@ -164,7 +164,7 @@ func TestConfigCommandsWithUI(t *testing.T) {
 
 func TestCompletionCommandWithUI(t *testing.T) {
 	shells := []string{"bash", "zsh", "fish", "powershell"}
-	
+
 	for _, shell := range shells {
 		t.Run("completion_"+shell, func(t *testing.T) {
 			var buf bytes.Buffer
@@ -172,12 +172,12 @@ func TestCompletionCommandWithUI(t *testing.T) {
 			cmd.SetOut(&buf)
 			cmd.SetErr(&buf)
 			cmd.SetArgs([]string{"completion", shell})
-			
+
 			err := cmd.Execute()
 			if err != nil {
 				t.Errorf("completion command failed for %s: %v", shell, err)
 			}
-			
+
 			output := buf.String()
 			if len(output) == 0 {
 				t.Errorf("expected completion output for %s", shell)
@@ -190,7 +190,7 @@ func TestCompletionCommandWithUI(t *testing.T) {
 func BenchmarkShouldUseColors(b *testing.B) {
 	os.Setenv("TERM", "xterm-256color")
 	os.Setenv("NO_COLOR", "")
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		shouldUseColors()
@@ -202,7 +202,7 @@ func BenchmarkRootCommandHelp(b *testing.B) {
 	var buf bytes.Buffer
 	cmd.SetOut(&buf)
 	cmd.SetArgs([]string{"--help"})
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		buf.Reset()

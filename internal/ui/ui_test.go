@@ -10,7 +10,7 @@ func TestNewUI(t *testing.T) {
 	var buf bytes.Buffer
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
-	
+
 	if ui.writer != &buf {
 		t.Error("writer not set correctly")
 	}
@@ -27,21 +27,21 @@ func TestHeader(t *testing.T) {
 		contains []string
 	}{
 		{
-			name:  "full header with colors and emojis",
-			title: "Test Title",
-			theme: Theme{UseColors: true, UseEmojis: true, Compact: false},
+			name:     "full header with colors and emojis",
+			title:    "Test Title",
+			theme:    Theme{UseColors: true, UseEmojis: true, Compact: false},
 			contains: []string{"Test Title", "─"},
 		},
 		{
-			name:  "compact header",
-			title: "Test Title",
-			theme: Theme{UseColors: false, UseEmojis: true, Compact: true},
+			name:     "compact header",
+			title:    "Test Title",
+			theme:    Theme{UseColors: false, UseEmojis: true, Compact: true},
 			contains: []string{"📋", "Test Title"},
 		},
 		{
-			name:  "no emojis",
-			title: "Test Title",
-			theme: Theme{UseColors: false, UseEmojis: false, Compact: true},
+			name:     "no emojis",
+			title:    "Test Title",
+			theme:    Theme{UseColors: false, UseEmojis: false, Compact: true},
 			contains: []string{"Test Title"},
 		},
 	}
@@ -51,7 +51,7 @@ func TestHeader(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
 			ui.Header(tt.title)
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -102,7 +102,7 @@ func TestCategoryInfo(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
 			ui.CategoryInfo(tt.categoryName, tt.totalFiles, tt.selectedFiles)
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -136,7 +136,7 @@ func TestMenu(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
 			ui.Menu()
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -149,18 +149,18 @@ func TestMenu(t *testing.T) {
 
 func TestMainMenu(t *testing.T) {
 	categories := []string{"/path/to/Beach", "/path/to/Latex", "/path/to/General"}
-	
+
 	var buf bytes.Buffer
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
 	ui.MainMenu(categories)
-	
+
 	output := buf.String()
 	expected := []string{
 		"Outfit Picker", "Categories", "1", "Beach", "2", "Latex", "3", "General",
 		"All-categories options", "r", "s", "u", "q",
 	}
-	
+
 	for _, exp := range expected {
 		if !strings.Contains(output, exp) {
 			t.Errorf("expected output to contain %q, got %q", exp, output)
@@ -204,7 +204,7 @@ func TestSelectedFiles(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
 			ui.SelectedFiles(tt.categoryName, tt.files)
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -241,7 +241,7 @@ func TestUnselectedFiles(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
 			ui.UnselectedFiles(tt.files)
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -257,10 +257,10 @@ func TestRandomSelection(t *testing.T) {
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
 	ui.RandomSelection("test-outfit.jpg")
-	
+
 	output := buf.String()
 	expected := []string{"Randomly selected", "test-outfit.jpg", "(k)eep", "(s)kip", "(q)uit"}
-	
+
 	for _, exp := range expected {
 		if !strings.Contains(output, exp) {
 			t.Errorf("expected output to contain %q, got %q", exp, output)
@@ -273,7 +273,7 @@ func TestKeepAction(t *testing.T) {
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
 	ui.KeepAction("test-outfit.jpg")
-	
+
 	output := buf.String()
 	if !strings.Contains(output, "Kept and cached") || !strings.Contains(output, "test-outfit.jpg") {
 		t.Errorf("expected keep action message, got %q", output)
@@ -285,7 +285,7 @@ func TestSkipAction(t *testing.T) {
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
 	ui.SkipAction("test-outfit.jpg")
-	
+
 	output := buf.String()
 	if !strings.Contains(output, "Skipped") || !strings.Contains(output, "test-outfit.jpg") {
 		t.Errorf("expected skip action message, got %q", output)
@@ -329,7 +329,7 @@ func TestCompletionSummary(t *testing.T) {
 			theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 			ui := NewUI(&buf, theme)
 			ui.CompletionSummary(tt.completed, tt.total, tt.names)
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -379,7 +379,7 @@ func TestMessageMethods(t *testing.T) {
 			theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 			ui := NewUI(&buf, theme)
 			tt.method(ui, tt.message)
-			
+
 			output := buf.String()
 			for _, expected := range tt.contains {
 				if !strings.Contains(output, expected) {
@@ -413,7 +413,7 @@ func TestSeparator(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
 			ui.Separator()
-			
+
 			output := buf.String()
 			if !strings.Contains(output, tt.contains) {
 				t.Errorf("expected output to contain %q, got %q", tt.contains, output)
@@ -451,7 +451,7 @@ func TestColorize(t *testing.T) {
 			var buf bytes.Buffer
 			theme := Theme{UseColors: tt.useColors, UseEmojis: false, Compact: false}
 			ui := NewUI(&buf, theme)
-			
+
 			result := ui.colorize(tt.text, tt.color)
 			if result != tt.expected {
 				t.Errorf("expected %q, got %q", tt.expected, result)
@@ -486,7 +486,7 @@ func TestIcon(t *testing.T) {
 			var buf bytes.Buffer
 			theme := Theme{UseColors: false, UseEmojis: tt.useEmojis, Compact: false}
 			ui := NewUI(&buf, theme)
-			
+
 			result := ui.icon(tt.emoji)
 			if result != tt.expected {
 				t.Errorf("expected %q, got %q", tt.expected, result)
@@ -523,7 +523,7 @@ func TestCreateProgressBar(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var buf bytes.Buffer
 			ui := NewUI(&buf, tt.theme)
-			
+
 			result := ui.createProgressBar(tt.percentage, tt.width)
 			for _, expected := range tt.contains {
 				if !strings.Contains(result, expected) {
@@ -539,7 +539,7 @@ func BenchmarkHeader(b *testing.B) {
 	var buf bytes.Buffer
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
@@ -552,7 +552,7 @@ func BenchmarkMainMenu(b *testing.B) {
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
 	categories := []string{"/path/to/Beach", "/path/to/Latex", "/path/to/General"}
-	
+
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		buf.Reset()

@@ -25,14 +25,14 @@ func (ao *AsyncOperations) LoadCategoriesAsync(rootPath string, callback func([]
 	ao.wg.Add(1)
 	go func() {
 		defer ao.wg.Done()
-		
+
 		select {
 		case <-ao.ctx.Done():
 			callback(nil, ao.ctx.Err())
 			return
 		default:
 		}
-		
+
 		categories, err := listCategories(rootPath)
 		callback(categories, err)
 	}()
@@ -43,7 +43,7 @@ func (ao *AsyncOperations) PreloadCacheAsync(categories []string, optimizer *Cac
 	ao.wg.Add(1)
 	go func() {
 		defer ao.wg.Done()
-		
+
 		for _, cat := range categories {
 			select {
 			case <-ao.ctx.Done():
@@ -51,7 +51,7 @@ func (ao *AsyncOperations) PreloadCacheAsync(categories []string, optimizer *Cac
 				return
 			default:
 			}
-			
+
 			_, err := optimizer.GetFileCount(cat)
 			if err != nil {
 				callback(err)

@@ -9,7 +9,7 @@ func TestVersion(t *testing.T) {
 	if Version == "" {
 		t.Error("Version should not be empty")
 	}
-	
+
 	if len(Version) == 0 {
 		t.Error("Version should have non-zero length")
 	}
@@ -38,12 +38,12 @@ func isValidSemVer(v string) bool {
 	if strings.HasPrefix(v, "v") {
 		v = v[1:]
 	}
-	
+
 	parts := strings.Split(v, ".")
 	if len(parts) != 3 {
 		return false
 	}
-	
+
 	for _, part := range parts {
 		if len(part) == 0 {
 			return false
@@ -54,6 +54,6 @@ func isValidSemVer(v string) bool {
 			}
 		}
 	}
-	
+
 	return true
 }

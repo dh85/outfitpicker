@@ -7,9 +7,9 @@ import (
 
 // CacheOptimizer provides caching for expensive operations
 type CacheOptimizer struct {
-	mu           sync.RWMutex
+	mu             sync.RWMutex
 	fileCountCache map[string]cacheEntry
-	ttl          time.Duration
+	ttl            time.Duration
 }
 
 type cacheEntry struct {
@@ -21,7 +21,7 @@ type cacheEntry struct {
 func NewCacheOptimizer(ttl time.Duration) *CacheOptimizer {
 	return &CacheOptimizer{
 		fileCountCache: make(map[string]cacheEntry),
-		ttl:           ttl,
+		ttl:            ttl,
 	}
 }
 
@@ -35,20 +35,20 @@ func (c *CacheOptimizer) GetFileCount(categoryPath string) (int, error) {
 		}
 	}
 	c.mu.RUnlock()
-	
+
 	// Compute and cache
 	count, err := categoryFileCount(categoryPath)
 	if err != nil {
 		return 0, err
 	}
-	
+
 	c.mu.Lock()
 	c.fileCountCache[categoryPath] = cacheEntry{
 		value:     count,
 		timestamp: time.Now(),
 	}
 	c.mu.Unlock()
-	
+
 	return count, nil
 }
 

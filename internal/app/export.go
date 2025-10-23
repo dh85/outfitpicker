@@ -8,8 +8,8 @@ import (
 
 // SelectionHistory represents the selection history
 type SelectionHistory struct {
-	Timestamp  time.Time            `json:"timestamp"`
-	Categories map[string][]string  `json:"categories"`
+	Timestamp  time.Time              `json:"timestamp"`
+	Categories map[string][]string    `json:"categories"`
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 }
 
@@ -25,16 +25,16 @@ func (em *ExportManager) Export(cacheData map[string][]string, filepath string) 
 		Timestamp:  time.Now(),
 		Categories: cacheData,
 		Metadata: map[string]interface{}{
-			"version": "1.0",
+			"version":     "1.0",
 			"exported_by": "outfitpicker",
 		},
 	}
-	
+
 	data, err := json.MarshalIndent(history, "", "  ")
 	if err != nil {
 		return err
 	}
-	
+
 	return os.WriteFile(filepath, data, 0644)
 }
 
@@ -43,23 +43,23 @@ func (em *ExportManager) Import(filepath string) (map[string][]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	var history SelectionHistory
 	if err := json.Unmarshal(data, &history); err != nil {
 		return nil, err
 	}
-	
+
 	return history.Categories, nil
 }
 
 func (em *ExportManager) Merge(existing, imported map[string][]string) map[string][]string {
 	result := make(map[string][]string)
-	
+
 	// Copy existing
 	for k, v := range existing {
 		result[k] = append([]string(nil), v...)
 	}
-	
+
 	// Merge imported (avoiding duplicates)
 	for category, files := range imported {
 		existingFiles := toSet(result[category])
@@ -69,6 +69,6 @@ func (em *ExportManager) Merge(existing, imported map[string][]string) map[strin
 			}
 		}
 	}
-	
+
 	return result
 }
