@@ -5,7 +5,7 @@ Welcome to Outfit Picker! This guide will help you get started with organizing a
 ## What is Outfit Picker?
 
 Outfit Picker is a simple tool that helps you:
-- Organize your outfit photos into folders
+- Organize your outfits into folders
 - Randomly select outfits you haven't worn recently
 - Keep track of what you've already picked
 - Never run out of fresh outfit ideas
@@ -37,7 +37,7 @@ curl -fsSL https://raw.githubusercontent.com/dh85/outfitpicker/main/install.sh |
    - `Beach`
    - `Winter`
 
-3. **Add your photos** - Put outfit photos in the appropriate folders:
+3. **Add your outfits** - Put outfits in the appropriate folders:
    ```
    My Outfits/
    ├── Work Outfits/
@@ -174,12 +174,11 @@ Outfit Picker will find these and include them in your selections.
 
 ## Tips for Best Results
 
-### Photo Organization Tips
+### Outfit Organization Tips
 
-1. **Use clear filenames**: `blue-jeans-white-tee.jpg` instead of `IMG_1234.jpg`
-2. **One outfit per photo**: Each photo should show one complete outfit
-3. **Consistent categories**: Stick to the same folder names you create initially
-4. **Regular updates**: Add new outfits as you get them
+1. **Use clear filenames**: `blue-jeans-white-tee.avatar` instead of `avatar1.avatar`
+2. **Consistent categories**: Stick to the same folder names you create initially
+3. **Regular updates**: Add new outfits as you get them
 
 ### Usage Tips
 
@@ -224,7 +223,7 @@ Here's how Sarah uses Outfit Picker every morning:
 1. **Opens terminal** and types `outfitpicker`
 2. **Sees her categories**: Work Outfits, Casual, Gym
 3. **Types `r`** for a random outfit (she likes surprises!)
-4. **Gets suggestion**: "blue-blazer-outfit.jpg"
+4. **Gets suggestion**: "blue-blazer-outfit.avatar"
 5. **Types `k`** to keep it (she likes the choice)
 6. **Gets dressed** and starts her day!
 
