@@ -30,32 +30,33 @@ func NewI18n(locale string) *I18n {
 func DetectLocale() string {
 	// Check LANG environment variable first
 	if lang := os.Getenv("LANG"); lang != "" {
-		// Extract language code (e.g., "es_ES.UTF-8" -> "es")
-		if parts := strings.Split(lang, "_"); len(parts) > 0 {
-			langCode := strings.ToLower(parts[0])
-			// Handle "c" locale (common in CI environments) as English
-			if langCode == "c" {
-				return "en"
-			}
-			return langCode
-		}
+		return parseLocale(lang)
 	}
 
 	// Check LC_ALL and LC_MESSAGES as fallbacks
 	for _, env := range []string{"LC_ALL", "LC_MESSAGES"} {
 		if lang := os.Getenv(env); lang != "" {
-			if parts := strings.Split(lang, "_"); len(parts) > 0 {
-				langCode := strings.ToLower(parts[0])
-				// Handle "c" locale as English
-				if langCode == "c" {
-					return "en"
-				}
-				return langCode
-			}
+			return parseLocale(lang)
 		}
 	}
 
 	// Default to English
+	return "en"
+}
+
+func parseLocale(lang string) string {
+	// Handle common CI/system locales that should default to English
+	lang = strings.ToLower(lang)
+	if lang == "c" || lang == "c.utf-8" || lang == "posix" {
+		return "en"
+	}
+
+	// Extract language code (e.g., "es_ES.UTF-8" -> "es")
+	if parts := strings.Split(lang, "_"); len(parts) > 0 {
+		langCode := strings.Split(parts[0], ".")[0] // Handle "en.UTF-8" format
+		return langCode
+	}
+
 	return "en"
 }
 
