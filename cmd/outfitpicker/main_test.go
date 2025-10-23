@@ -183,59 +183,66 @@ func TestErrorHandling(t *testing.T) {
 }
 
 func TestRootResolution(t *testing.T) {
-	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	// Ensure completely clean state
-	config.Delete()
-
-	// Create test structure
-	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-	os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
-
 	tests := []struct {
 		name        string
 		args        []string
-		setup       func()
+		setup       func(string) string // returns rootDir
 		expectError bool
 	}{
 		{
 			name: "positional root arg",
-			args: []string{rootDir, "--category", "TestCat"},
+			setup: func(tempDir string) string {
+				rootDir := filepath.Join(tempDir, "outfits")
+				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+				return rootDir
+			},
 		},
 		{
 			name: "root flag",
-			args: []string{"--root", rootDir, "--category", "TestCat"},
+			setup: func(tempDir string) string {
+				rootDir := filepath.Join(tempDir, "outfits")
+				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+				return rootDir
+			},
 		},
 		{
 			name: "config root",
-			args: []string{"--category", "TestCat"},
-			setup: func() {
-				// Ensure clean config state first
-				config.Delete()
-				// Ensure the directory and test structure exists before saving to config
-				os.MkdirAll(rootDir, 0755)
+			setup: func(tempDir string) string {
+				rootDir := filepath.Join(tempDir, "outfits")
 				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
 				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 				config.Save(&config.Config{Root: rootDir})
+				return rootDir
 			},
 		},
-
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.setup != nil {
-				tt.setup()
-			}
-			// Ensure cleanup after each subtest
+			tempDir := t.TempDir()
+			t.Setenv("XDG_CONFIG_HOME", tempDir)
+			config.Delete() // Clean state for each subtest
 			defer config.Delete()
+
+			rootDir := tt.setup(tempDir)
+			
+			var args []string
+			switch tt.name {
+			case "positional root arg":
+				args = []string{rootDir, "--category", "TestCat"}
+			case "root flag":
+				args = []string{"--root", rootDir, "--category", "TestCat"}
+			case "config root":
+				args = []string{"--category", "TestCat"}
+			}
 
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
 			cmd.SetOut(&stdout)
 			cmd.SetIn(strings.NewReader("q\n"))
-			cmd.SetArgs(tt.args)
+			cmd.SetArgs(args)
 
 			err := cmd.Execute()
 			if tt.expectError && err == nil {
@@ -269,6 +276,7 @@ func TestNoConfigTrigger(t *testing.T) {
 func TestConfigFromSaved(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	config.Delete() // Ensure clean state
 	defer config.Delete()
 
 	// Create test structure
@@ -277,7 +285,10 @@ func TestConfigFromSaved(t *testing.T) {
 	os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 
 	// Save config
-	config.Save(&config.Config{Root: rootDir})
+	err := config.Save(&config.Config{Root: rootDir})
+	if err != nil {
+		t.Fatalf("failed to save config: %v", err)
+	}
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -285,7 +296,7 @@ func TestConfigFromSaved(t *testing.T) {
 	cmd.SetIn(strings.NewReader("q\n"))
 	cmd.SetArgs([]string{})
 
-	err := cmd.Execute()
+	err = cmd.Execute()
 	if err != nil {
 		t.Errorf("using saved config failed: %v", err)
 	}

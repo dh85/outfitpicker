@@ -68,10 +68,11 @@ func TestResolveRoot(t *testing.T) {
 func TestResolveRootFromConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	// Ensure clean state at start
+	// Ensure completely clean state
 	config.Delete()
+	defer config.Delete()
 	
-	// Save config
+	// Save config with unique path for this test
 	testRoot := filepath.Join(tempDir, "test-root")
 	os.MkdirAll(testRoot, 0755)
 	err := config.Save(&config.Config{Root: testRoot})
@@ -79,7 +80,7 @@ func TestResolveRootFromConfig(t *testing.T) {
 		t.Fatalf("failed to save config: %v", err)
 	}
 	
-	// Verify config was saved
+	// Verify config was saved correctly
 	loadedConfig, err := config.Load()
 	if err != nil {
 		t.Fatalf("failed to load config: %v", err)
@@ -88,7 +89,7 @@ func TestResolveRootFromConfig(t *testing.T) {
 		t.Fatalf("config not saved correctly: expected %s, got %s", testRoot, loadedConfig.Root)
 	}
 	
-	// Test without override
+	// Test resolveRoot without override should use config
 	root, err := resolveRoot("")
 	if err != nil {
 		t.Errorf("resolveRoot failed: %v", err)
@@ -96,9 +97,6 @@ func TestResolveRootFromConfig(t *testing.T) {
 	if root != testRoot {
 		t.Errorf("expected root %s, got %s", testRoot, root)
 	}
-	
-	// Cleanup
-	config.Delete()
 }
 
 func TestResolveRootErrors(t *testing.T) {
