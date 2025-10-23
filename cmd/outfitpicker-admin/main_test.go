@@ -134,14 +134,32 @@ func TestResolveRootErrors(t *testing.T) {
 }
 
 func TestVersionFlag(t *testing.T) {
-	cmd := newRootCmd()
-	var stdout bytes.Buffer
-	cmd.SetOut(&stdout)
-	cmd.SetArgs([]string{"--version"})
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"short flag", []string{"-v"}},
+		{"long flag", []string{"--version"}},
+	}
 
-	// This should exit, so we expect it to not return normally
-	// We'll test the PersistentPreRunE instead
-	cmd.PersistentPreRunE(cmd, []string{})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := newRootCmd()
+			var stdout bytes.Buffer
+			cmd.SetOut(&stdout)
+			cmd.SetArgs(tt.args)
+
+			err := cmd.Execute()
+			if err != nil {
+				t.Errorf("version flag failed: %v", err)
+			}
+
+			output := stdout.String()
+			if output == "" {
+				t.Error("expected version output")
+			}
+		})
+	}
 }
 
 func TestConfigCommands(t *testing.T) {

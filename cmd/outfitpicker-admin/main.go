@@ -30,14 +30,14 @@ func newRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "outfitpicker-admin",
 		Short: "Admin utilities for outfitpicker",
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			// handle --version early for any command
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if showVersion {
 				fmt.Fprintln(cmd.OutOrStdout(), version.GetVersion())
-				os.Exit(0)
+				return nil
 			}
-			return nil
+			return cmd.Help()
 		},
+
 	}
 
 	// Global flags
