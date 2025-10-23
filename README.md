@@ -67,6 +67,27 @@ sudo pacman -U outfitpicker_linux_amd64.pkg.tar.xz
 ### Manual Download
 Download the latest binary for your platform from the [releases page](https://github.com/dh85/outfitpicker/releases).
 
+## Updating
+
+### Homebrew
+```bash
+brew update
+brew upgrade outfitpicker
+```
+
+### Go Install
+```bash
+go install github.com/dh85/outfitpicker/cmd/outfitpicker@latest
+```
+
+### Linux Packages
+Reinstall using the same method as installation with the latest version.
+
+### Quick Install Script
+```bash
+curl -fsSL https://raw.githubusercontent.com/dh85/outfitpicker/main/install.sh | bash
+```
+
 ## Usage
 
 ### First run
