@@ -66,9 +66,11 @@ func TestResolveRoot(t *testing.T) {
 func TestResolveRootFromConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer config.Delete()
 	
 	// Save config
-	testRoot := "/test/root"
+	testRoot := filepath.Join(tempDir, "test-root")
+	os.MkdirAll(testRoot, 0755)
 	config.Save(&config.Config{Root: testRoot})
 	
 	// Test without override
@@ -144,18 +146,22 @@ func TestConfigCommands(t *testing.T) {
 			name: "config show - with config",
 			args: []string{"config", "show"},
 			setup: func() {
-				config.Save(&config.Config{Root: "/test"})
+				testRoot := filepath.Join(tempDir, "test-config")
+				os.MkdirAll(testRoot, 0755)
+				config.Save(&config.Config{Root: testRoot})
 			},
 		},
 		{
 			name: "config set-root",
-			args: []string{"config", "set-root", "/new/root"},
+			args: []string{"config", "set-root", filepath.Join(tempDir, "new-root")},
 		},
 		{
 			name: "config reset",
 			args: []string{"config", "reset"},
 			setup: func() {
-				config.Save(&config.Config{Root: "/test"})
+				testRoot := filepath.Join(tempDir, "test-reset")
+				os.MkdirAll(testRoot, 0755)
+				config.Save(&config.Config{Root: testRoot})
 			},
 		},
 	}
