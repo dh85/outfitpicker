@@ -23,11 +23,11 @@ func NewPluginManager() *PluginManager {
 	pm := &PluginManager{
 		plugins: make(map[string]Plugin),
 	}
-	
+
 	// Register built-in plugins
 	pm.Register(ImagePlugin{})
 	pm.Register(DocumentPlugin{})
-	
+
 	return pm
 }
 
@@ -37,7 +37,7 @@ func (pm *PluginManager) Register(plugin Plugin) {
 
 func (pm *PluginManager) GetPlugin(filename string) Plugin {
 	ext := strings.ToLower(filepath.Ext(filename))
-	
+
 	for _, plugin := range pm.plugins {
 		for _, supportedExt := range plugin.SupportedExtensions() {
 			if ext == supportedExt {
@@ -45,11 +45,11 @@ func (pm *PluginManager) GetPlugin(filename string) Plugin {
 			}
 		}
 	}
-	
+
 	return DefaultPlugin{} // Fallback
 }
 
-// Built-in plugins
+// ImagePlugin handles image file processing
 type ImagePlugin struct{}
 
 func (p ImagePlugin) Name() string { return "image" }
@@ -92,7 +92,7 @@ func (p DocumentPlugin) Validate(entry FileEntry) error {
 
 type DefaultPlugin struct{}
 
-func (p DefaultPlugin) Name() string { return "default" }
+func (p DefaultPlugin) Name() string                  { return "default" }
 func (p DefaultPlugin) SupportedExtensions() []string { return []string{} }
 func (p DefaultPlugin) ProcessFile(path string) (FileEntry, error) {
 	return FileEntry{

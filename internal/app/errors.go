@@ -16,7 +16,7 @@ func (e AppError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Type, e.Message)
 }
 
-// Error constructors
+// NewCategoryError creates a new category-related error
 func NewCategoryError(msg string, cause error) error {
 	return AppError{Type: "CategoryError", Message: msg, Cause: cause}
 }

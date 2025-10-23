@@ -103,7 +103,7 @@ func encodeConfig(c *Config) ([]byte, error) {
 }
 
 func writeConfigFile(path string, data []byte) error {
-	if err := os.WriteFile(path, data, 0o600); err != nil {
+	if err := os.WriteFile(path, data, filePermissions); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 	return nil
