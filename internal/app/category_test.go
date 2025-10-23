@@ -58,7 +58,7 @@ func (f *testFixture) runCategoryFlow(catPath, input string) (string, error) {
 func (f *testFixture) runRandomAcrossAll(categories []string, input string) (string, error) {
 	pr := &prompter{r: bufio.NewReader(strings.NewReader(input))}
 	var stdout bytes.Buffer
-	err := randomAcrossAll(categories, f.cache, pr, &stdout)
+	err := randomAcrossAll(categories, nil, f.cache, pr, &stdout)
 	return stdout.String(), err
 }
 
@@ -325,7 +325,7 @@ func TestRunCategoryFlow(t *testing.T) {
 			name:     "ShowSelected_Empty",
 			setup:    func(f *testFixture) string { return f.createCategory("test", "file1.txt") },
 			input:    "s\n",
-			contains: []string{"No files have been selected yet"},
+			contains: []string{"You haven't picked any outfits from here yet"},
 		},
 		{
 			name: "ShowSelected_WithFiles",
@@ -335,7 +335,7 @@ func TestRunCategoryFlow(t *testing.T) {
 				return catPath
 			},
 			input:    "s\n",
-			contains: []string{"Previously Selected Files", "file1.txt"},
+			contains: []string{"Outfits You've Already Picked", "file1.txt"},
 		},
 		{
 			name: "ShowUnselected_AllSelected",
@@ -345,7 +345,7 @@ func TestRunCategoryFlow(t *testing.T) {
 				return catPath
 			},
 			input:    "u\n",
-			contains: []string{"All files in this category have been selected"},
+			contains: []string{"You've picked all the outfits from here!"},
 		},
 		{
 			name: "ShowUnselected_WithFiles",
@@ -355,7 +355,7 @@ func TestRunCategoryFlow(t *testing.T) {
 				return catPath
 			},
 			input:    "u\n",
-			contains: []string{"Unselected Files", "file2.txt"},
+			contains: []string{"Outfits You Haven't Picked Yet", "file2.txt"},
 		},
 		{
 			name: "Random_AllSelected",
@@ -365,13 +365,13 @@ func TestRunCategoryFlow(t *testing.T) {
 				return catPath
 			},
 			input:    "r\n",
-			contains: []string{"all files in", "have been selected"},
+			contains: []string{"Amazing! You've picked all the outfits"},
 		},
 		{
 			name:     "Random_Keep",
 			setup:    func(f *testFixture) string { return f.createCategory("test", "file1.txt") },
 			input:    "r\nk\n",
-			contains: []string{"Kept and cached"},
+			contains: []string{"Great choice! I've saved"},
 		},
 		{
 			name:     "Random_Skip",
@@ -457,7 +457,7 @@ func TestRandomAcrossAll(t *testing.T) {
 				return []string{cat1}
 			},
 			input:    "",
-			contains: []string{"all files in all categories have been selected"},
+			contains: []string{"Amazing! You've picked all your outfits!"},
 		},
 		{
 			name: "Keep",
@@ -465,7 +465,7 @@ func TestRandomAcrossAll(t *testing.T) {
 				return []string{f.createCategory("cat1", "file1.txt")}
 			},
 			input:    "k\n",
-			contains: []string{"Kept and cached"},
+			contains: []string{"Great choice! I've saved"},
 		},
 		{
 			name: "Skip",
@@ -512,7 +512,7 @@ func TestRandomAcrossAll(t *testing.T) {
 			if tt.name == "ReadError" {
 				pr := &prompter{r: bufio.NewReader(&errorReader{})}
 				var stdout bytes.Buffer
-				err = randomAcrossAll(categories, f.cache, pr, &stdout)
+				err = randomAcrossAll(categories, nil, f.cache, pr, &stdout)
 				output = stdout.String()
 			} else {
 				output, err = f.runRandomAcrossAll(categories, tt.input)
@@ -548,9 +548,9 @@ func testShowSelectedAcrossAllEmpty(t *testing.T) {
 	cat1 := f.createCategory("cat1")
 	var stdout bytes.Buffer
 
-	err := showSelectedAcrossAll([]string{cat1}, f.cache, &stdout)
+	err := showSelectedAcrossAll([]string{cat1}, nil, f.cache, &stdout)
 	f.assertNoError(err)
-	f.assertOutputContains(stdout.String(), "No files have been selected yet")
+	f.assertOutputContains(stdout.String(), "You haven't picked any outfits from here yet")
 }
 
 func testShowSelectedAcrossAllWithFiles(t *testing.T) {
@@ -559,10 +559,10 @@ func testShowSelectedAcrossAllWithFiles(t *testing.T) {
 	f.cache.Add("file1.txt", cat1)
 	var stdout bytes.Buffer
 
-	err := showSelectedAcrossAll([]string{cat1}, f.cache, &stdout)
+	err := showSelectedAcrossAll([]string{cat1}, nil, f.cache, &stdout)
 	f.assertNoError(err)
 	output := stdout.String()
-	f.assertOutputContains(output, "Previously Selected Files")
+	f.assertOutputContains(output, "Outfits You've Already Picked")
 	f.assertOutputContains(output, "file1.txt")
 }
 
@@ -572,9 +572,9 @@ func testShowUnselectedAcrossAllAllSelected(t *testing.T) {
 	f.cache.Add("file1.txt", cat1)
 	var stdout bytes.Buffer
 
-	err := showUnselectedAcrossAll([]string{cat1}, f.cache, &stdout)
+	err := showUnselectedAcrossAll([]string{cat1}, nil, f.cache, &stdout)
 	f.assertNoError(err)
-	f.assertOutputContains(stdout.String(), "All files in all categories have been selected")
+	f.assertOutputContains(stdout.String(), "You've picked all the outfits")
 }
 
 func testShowUnselectedAcrossAllWithFiles(t *testing.T) {
@@ -583,9 +583,9 @@ func testShowUnselectedAcrossAllWithFiles(t *testing.T) {
 	f.cache.Add("file1.txt", cat1)
 	var stdout bytes.Buffer
 
-	err := showUnselectedAcrossAll([]string{cat1}, f.cache, &stdout)
+	err := showUnselectedAcrossAll([]string{cat1}, nil, f.cache, &stdout)
 	f.assertNoError(err)
 	output := stdout.String()
-	f.assertOutputContains(output, "Unselected Files")
+	f.assertOutputContains(output, "Outfits You Haven't Picked Yet")
 	f.assertOutputContains(output, "file2.txt")
 }

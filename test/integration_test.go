@@ -176,12 +176,12 @@ func testCategorySelection(it *integrationTest) {
 	}
 	
 	it.assertOutputContains(output,
-		"Categories:",
+		"Outfit Folders",
 		"[1] Beach",
 		"[2] Casual", 
 		"[3] Formal",
-		"Category: Beach",
-		"kept and cached",
+		"Beach",
+		"Great choice! I've saved",
 	)
 }
 
@@ -193,9 +193,9 @@ func testRandomSelection(it *integrationTest) {
 	}
 	
 	it.assertOutputContains(output,
-		"Randomly selected:",
-		"kept and cached",
-		"categories complete:",
+		"I picked this outfit for you",
+		"Great choice! I've saved",
+		"Outfit folders complete:",
 	)
 }
 
@@ -210,7 +210,7 @@ func testShowFunctions(it *integrationTest) {
 		it.t.Fatalf("show selected failed: %v", err)
 	}
 	
-	it.assertOutputContains(output, "Selected in")
+	it.assertOutputContains(output, "Outfits You've Already Picked")
 	
 	// Test show unselected
 	output, err = it.runApp("u\n")
@@ -218,7 +218,7 @@ func testShowFunctions(it *integrationTest) {
 		it.t.Fatalf("show unselected failed: %v", err)
 	}
 	
-	it.assertOutputContains(output, "Unselected in")
+	it.assertOutputContains(output, "Outfits You Haven't Picked Yet")
 }
 
 func testConfigManagement(it *integrationTest) {
@@ -292,8 +292,8 @@ func testCacheManagement(it *integrationTest) {
 		it.t.Fatalf("failed to show selected: %v", err)
 	}
 	
-	it.assertOutputContains(output, "Selected in")
-	it.assertOutputNotContains(output, "no files have been selected yet")
+	it.assertOutputContains(output, "Outfits You've Already Picked")
+	it.assertOutputNotContains(output, "You haven't picked any outfits from here yet")
 	
 	// Test cache clearing by completing a category
 	// First, select all items in Beach category
@@ -310,7 +310,7 @@ func testCacheManagement(it *integrationTest) {
 	
 	// Should show all files selected or cache cleared
 	// Since we're quitting immediately, just check that we got to the category
-	it.assertOutputContains(output, "Category: Beach")
+	it.assertOutputContains(output, "Beach")
 }
 
 // Test specific category workflows
@@ -326,9 +326,9 @@ func TestIntegration_CategoryWorkflows(t *testing.T) {
 	}
 	
 	it.assertOutputContains(output,
-		"Category: Beach",
-		"Total files in \"Beach\":",
-		"kept and cached",
+		"Beach",
+		"Total files:",
+		"Great choice! I've saved",
 	)
 	
 	// Test case insensitive category
@@ -337,7 +337,7 @@ func TestIntegration_CategoryWorkflows(t *testing.T) {
 		t.Fatalf("case insensitive category failed: %v", err)
 	}
 	
-	it.assertOutputContains(output, "Category: Beach")
+	it.assertOutputContains(output, "Beach")
 }
 
 // Test edge cases and boundary conditions
@@ -359,7 +359,7 @@ func TestIntegration_EdgeCases(t *testing.T) {
 		t.Fatalf("hidden files test failed: %v", err)
 	}
 	
-	it.assertOutputContains(output, "Total files in \"TestCat\": 1")
+	it.assertOutputContains(output, "Total files: 1")
 	
 	// Test Downloads directory exclusion
 	os.MkdirAll(filepath.Join(it.rootDir, "Downloads"), 0755)
@@ -388,8 +388,8 @@ func TestIntegration_FileSystemOperations(t *testing.T) {
 		t.Fatalf("cache persistence test failed: %v", err)
 	}
 	
-	it.assertOutputContains(output, "Previously Selected Files")
-	it.assertOutputNotContains(output, "no files have been selected yet")
+	it.assertOutputContains(output, "Outfits You've Already Picked")
+	it.assertOutputNotContains(output, "You haven't picked any outfits from here yet")
 	
 	// Test file system changes
 	newFile := filepath.Join(it.rootDir, "Beach", "newitem.jpg")

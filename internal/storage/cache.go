@@ -90,5 +90,4 @@ func (m *Manager) Clear(categoryPath string) {
 	c := m.Load()
 	delete(c, categoryPath)
 	m.Save(c)
-	fmt.Printf("cache cleared for %q\n", filepath.Base(categoryPath))
 }

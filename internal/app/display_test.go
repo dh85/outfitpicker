@@ -47,7 +47,7 @@ func TestDisplay_SelectedFiles(t *testing.T) {
 
 	// Test empty files
 	display.SelectedFiles("Test", []string{})
-	if !strings.Contains(buf.String(), "No files have been selected yet") {
+	if !strings.Contains(buf.String(), "You haven't picked any outfits from here yet") {
 		t.Error("expected empty message")
 	}
 
@@ -57,7 +57,7 @@ func TestDisplay_SelectedFiles(t *testing.T) {
 	display.SelectedFiles("Test", files)
 	output := buf.String()
 
-	if !strings.Contains(output, "Previously Selected Files") {
+	if !strings.Contains(output, "Outfits You've Already Picked") {
 		t.Error("expected header")
 	}
 	if !strings.Contains(output, "file1.jpg") || !strings.Contains(output, "file2.jpg") {

@@ -145,7 +145,7 @@ func TestShowSelectedAcrossAll_EnhancedUI(t *testing.T) {
 	var buf bytes.Buffer
 	categories := []string{beachPath, formalPath}
 
-	err := showSelectedAcrossAll(categories, cache, &buf)
+	err := showSelectedAcrossAll(categories, nil, cache, &buf)
 	if err != nil {
 		t.Fatalf("showSelectedAcrossAll failed: %v", err)
 	}
@@ -173,7 +173,7 @@ func TestShowUnselectedAcrossAll_EnhancedUI(t *testing.T) {
 	var buf bytes.Buffer
 	categories := []string{beachPath, formalPath}
 
-	err := showUnselectedAcrossAll(categories, cache, &buf)
+	err := showUnselectedAcrossAll(categories, nil, cache, &buf)
 	if err != nil {
 		t.Fatalf("showUnselectedAcrossAll failed: %v", err)
 	}

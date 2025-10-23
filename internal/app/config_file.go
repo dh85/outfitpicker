@@ -2,9 +2,10 @@ package app
 
 import (
 	"encoding/json"
-	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
+
+	"gopkg.in/yaml.v3"
 )
 
 // ConfigFile handles loading/saving app configuration

@@ -88,7 +88,7 @@ func TestRun_CacheInitError(t *testing.T) {
 
 func TestRun_InvalidRootPath(t *testing.T) {
 	_, err := runTest("", "", "")
-	assertError(t, err, "no category folders found")
+	assertError(t, err, "invalid selection")
 }
 
 func TestRun_ListCategoriesError(t *testing.T) {
@@ -102,7 +102,7 @@ func TestRun_ListCategoriesError(t *testing.T) {
 
 func TestRun_NoCategoriesFound(t *testing.T) {
 	_, err := runTest(t.TempDir(), "", "")
-	assertError(t, err, "no category folders found")
+	assertError(t, err, "no outfit files found")
 }
 
 func TestRun_CategoryOptionFound(t *testing.T) {
@@ -116,21 +116,21 @@ func TestRun_CategoryOptionNotFound(t *testing.T) {
 	root := createTestStructure(t)
 	_, err := runTest(root, "NonExistent", "")
 	assertError(t, err, "category \"NonExistent\" not found")
-	assertError(t, err, "available: Category1, Category2")
+	assertError(t, err, "available: [Category1 Category2]")
 }
 
 func TestRun_NumericSelection_Valid(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "1\nr\nq\n")
 	assertNoError(t, err, "numeric selection")
-	assertOutputContains(t, output, "Categories", "menu display")
+	assertOutputContains(t, output, "Outfit Folders", "menu display")
 	assertOutputContains(t, output, "Category1", "category flow")
 }
 
 func TestRun_NumericSelection_Invalid(t *testing.T) {
 	root := createTestStructure(t)
 	_, err := runTest(root, "", "99\n")
-	assertError(t, err, "invalid category selection")
+	assertError(t, err, "invalid selection")
 }
 
 func TestRun_RandomAcrossAll(t *testing.T) {
@@ -147,7 +147,7 @@ func TestRun_ShowSelectedAcrossAll(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "s\n")
 	assertNoError(t, err, "show selected across all")
-	assertOutputContains(t, output, "No files have been selected yet", "no selected files")
+	assertOutputContains(t, output, "You haven't picked any outfits from here yet", "no selected files")
 }
 
 func TestRun_ShowUnselectedAcrossAll(t *testing.T) {
@@ -176,10 +176,10 @@ func TestRun_MenuDisplay(t *testing.T) {
 	assertNoError(t, err, "menu display")
 
 	expectedItems := []string{
-		"Categories", "1", "Category1", "2", "Category2",
-		"All-categories options", "r", "Select a random file",
-		"s", "Show previously selected", "u", "Show unselected",
-		"q", "Quit", "Enter a category number or option",
+		"Outfit Folders", "1", "Category1", "2", "Category2",
+		"What would you like to do?", "r", "pick_random_outfit",
+		"s", "show_already_picked", "u", "show_not_picked",
+		"q", "exit", "Choose a number or letter",
 	}
 
 	for _, item := range expectedItems {

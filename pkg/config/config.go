@@ -17,7 +17,8 @@ const (
 )
 
 type Config struct {
-	Root string `json:"root"`
+	Root     string `json:"root"`
+	Language string `json:"language,omitempty"`
 }
 
 func Path() (string, error) {

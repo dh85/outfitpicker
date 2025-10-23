@@ -115,7 +115,7 @@ func TestRandomAcrossAllWithEmptyCategories(t *testing.T) {
 	var stdout bytes.Buffer
 	pr := &prompter{r: bufio.NewReader(strings.NewReader("k\n"))}
 
-	err := randomAcrossAll(categories, f.Cache, pr, &stdout)
+	err := randomAcrossAll(categories, nil, f.Cache, pr, &stdout)
 	if err != nil {
 		t.Errorf("should handle mix of empty/non-empty categories: %v", err)
 	}

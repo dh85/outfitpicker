@@ -90,6 +90,11 @@ curl -fsSL https://raw.githubusercontent.com/dh85/outfitpicker/main/install.sh |
 
 ## Usage
 
+### New to Outfit Picker?
+
+📖 **[Complete User Guide](USER_GUIDE.md)** - Detailed walkthrough for beginners  
+⚡ **[Quick Start Guide](QUICK_START.md)** - Get up and running in 3 steps
+
 ### First run
 
 ```bash

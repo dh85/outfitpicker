@@ -1,6 +1,10 @@
 package app
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"strings"
+)
 
 // I18n handles internationalization
 type I18n struct {
@@ -10,35 +14,8 @@ type I18n struct {
 
 func NewI18n(locale string) *I18n {
 	i18n := &I18n{
-		locale: locale,
-		messages: map[string]map[string]string{
-			"en": {
-				"category":        "Category",
-				"total_files":     "Total files in %q: %d",
-				"selected":        "Selected: %d of %d",
-				"options":         "Options:",
-				"random_select":   "[r] Select a random file in this category",
-				"show_selected":   "[s] Show previously selected files in this category",
-				"show_unselected": "[u] Show unselected files in this category",
-				"quit":            "[q] Quit",
-				"enter_choice":    "Enter your choice: ",
-				"kept_cached":     "kept and cached: %s",
-				"exiting":         "Exiting.",
-			},
-			"es": {
-				"category":        "Categoría",
-				"total_files":     "Total de archivos en %q: %d",
-				"selected":        "Seleccionados: %d de %d",
-				"options":         "Opciones:",
-				"random_select":   "[r] Seleccionar un archivo aleatorio en esta categoría",
-				"show_selected":   "[s] Mostrar archivos seleccionados previamente",
-				"show_unselected": "[u] Mostrar archivos no seleccionados",
-				"quit":            "[q] Salir",
-				"enter_choice":    "Ingrese su elección: ",
-				"kept_cached":     "guardado y almacenado: %s",
-				"exiting":         "Saliendo.",
-			},
-		},
+		locale:   locale,
+		messages: getTranslations(),
 	}
 
 	// Default to English if locale not found
@@ -47,6 +24,29 @@ func NewI18n(locale string) *I18n {
 	}
 
 	return i18n
+}
+
+// DetectLocale detects the user's locale from environment variables
+func DetectLocale() string {
+	// Check LANG environment variable first
+	if lang := os.Getenv("LANG"); lang != "" {
+		// Extract language code (e.g., "es_ES.UTF-8" -> "es")
+		if parts := strings.Split(lang, "_"); len(parts) > 0 {
+			return strings.ToLower(parts[0])
+		}
+	}
+
+	// Check LC_ALL and LC_MESSAGES as fallbacks
+	for _, env := range []string{"LC_ALL", "LC_MESSAGES"} {
+		if lang := os.Getenv(env); lang != "" {
+			if parts := strings.Split(lang, "_"); len(parts) > 0 {
+				return strings.ToLower(parts[0])
+			}
+		}
+	}
+
+	// Default to English
+	return "en"
 }
 
 func (i *I18n) T(key string, args ...interface{}) string {
@@ -66,4 +66,18 @@ func (i *I18n) T(key string, args ...interface{}) string {
 	}
 
 	return key // Return key if translation not found
+}
+
+// GetLocale returns the current locale
+func (i *I18n) GetLocale() string {
+	return i.locale
+}
+
+// SetLocale changes the current locale
+func (i *I18n) SetLocale(locale string) {
+	if _, exists := i.messages[locale]; exists {
+		i.locale = locale
+	} else {
+		i.locale = "en" // fallback to English
+	}
 }

@@ -122,7 +122,7 @@ func TestMenu(t *testing.T) {
 		{
 			name:     "full menu",
 			theme:    Theme{UseColors: true, UseEmojis: true, Compact: false},
-			contains: []string{"Options", "r", "s", "u", "q", "🎲", "✅", "📄", "👋"},
+			contains: []string{"What would you like to do?", "r", "s", "u", "q", "🎲", "✅", "📄", "👋"},
 		},
 		{
 			name:     "compact menu",
@@ -153,12 +153,12 @@ func TestMainMenu(t *testing.T) {
 	var buf bytes.Buffer
 	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
 	ui := NewUI(&buf, theme)
-	ui.MainMenu(categories)
+	ui.MainMenu(categories, nil)
 
 	output := buf.String()
 	expected := []string{
-		"Outfit Picker", "Categories", "1", "Beach", "2", "Latex", "3", "General",
-		"All-categories options", "r", "s", "u", "q",
+		"Outfit Picker", "Outfit Folders", "1", "Beach", "2", "Latex", "3", "General",
+		"What would you like to do?", "r", "s", "u", "q",
 	}
 
 	for _, exp := range expected {
@@ -181,21 +181,21 @@ func TestSelectedFiles(t *testing.T) {
 			categoryName: "Beach",
 			files:        []string{},
 			theme:        Theme{UseColors: true, UseEmojis: true, Compact: false},
-			contains:     []string{"No files have been selected yet"},
+			contains:     []string{"You haven't picked any outfits from here yet"},
 		},
 		{
 			name:         "files selected full display",
 			categoryName: "Beach",
 			files:        []string{"outfit1.jpg", "outfit2.jpg"},
 			theme:        Theme{UseColors: true, UseEmojis: true, Compact: false},
-			contains:     []string{"Previously Selected Files", "outfit1.jpg", "outfit2.jpg", "2 files"},
+			contains:     []string{"Outfits You've Already Picked", "outfit1.jpg", "outfit2.jpg", "2 outfits"},
 		},
 		{
 			name:         "files selected compact",
 			categoryName: "Beach",
 			files:        []string{"outfit1.jpg"},
 			theme:        Theme{UseColors: false, UseEmojis: false, Compact: true},
-			contains:     []string{"Selected (1):", "1. outfit1.jpg"},
+			contains:     []string{"You picked (1):", "1. outfit1.jpg"},
 		},
 	}
 
@@ -226,13 +226,13 @@ func TestUnselectedFiles(t *testing.T) {
 			name:     "all files selected",
 			files:    []string{},
 			theme:    Theme{UseColors: true, UseEmojis: true, Compact: false},
-			contains: []string{"All files in this category have been selected!"},
+			contains: []string{"You've picked all the outfits from here!"},
 		},
 		{
 			name:     "unselected files exist",
 			files:    []string{"outfit3.jpg", "outfit4.jpg"},
 			theme:    Theme{UseColors: true, UseEmojis: true, Compact: false},
-			contains: []string{"Unselected Files", "outfit3.jpg", "outfit4.jpg"},
+			contains: []string{"Outfits You Haven't Picked Yet", "outfit3.jpg", "outfit4.jpg"},
 		},
 	}
 
@@ -259,7 +259,7 @@ func TestRandomSelection(t *testing.T) {
 	ui.RandomSelection("test-outfit.jpg")
 
 	output := buf.String()
-	expected := []string{"Randomly selected", "test-outfit.jpg", "(k)eep", "(s)kip", "(q)uit"}
+	expected := []string{"I picked this outfit for you", "test-outfit.jpg", "(k)eep", "(s)kip", "(q)uit"}
 
 	for _, exp := range expected {
 		if !strings.Contains(output, exp) {
@@ -275,7 +275,7 @@ func TestKeepAction(t *testing.T) {
 	ui.KeepAction("test-outfit.jpg")
 
 	output := buf.String()
-	if !strings.Contains(output, "Kept and cached") || !strings.Contains(output, "test-outfit.jpg") {
+	if !strings.Contains(output, "Great choice! I've saved") || !strings.Contains(output, "test-outfit.jpg") {
 		t.Errorf("expected keep action message, got %q", output)
 	}
 }
@@ -556,6 +556,154 @@ func BenchmarkMainMenu(b *testing.B) {
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		ui.MainMenu(categories)
+		ui.MainMenu(categories, nil)
+	}
+}
+func TestUncategorizedOnlyMenu(t *testing.T) {
+	var buf bytes.Buffer
+	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
+	ui := NewUI(&buf, theme)
+
+	ui.UncategorizedOnlyMenu(5)
+	output := buf.String()
+
+	expected := []string{
+		"Outfit Picker", "Your Outfits", "5 outfits available",
+		"What would you like to do?", "r", "s", "u", "m", "q",
+	}
+
+	for _, exp := range expected {
+		if !strings.Contains(output, exp) {
+			t.Errorf("expected output to contain %q, got %q", exp, output)
+		}
+	}
+}
+
+func TestUncategorizedInfo(t *testing.T) {
+	tests := []struct {
+		name          string
+		totalFiles    int
+		selectedFiles int
+		theme         Theme
+		contains      []string
+	}{
+		{
+			name:          "full display with progress",
+			totalFiles:    10,
+			selectedFiles: 3,
+			theme:         Theme{UseColors: true, UseEmojis: true, Compact: false},
+			contains:      []string{"Uncategorized Files", "10", "3", "30.0%"},
+		},
+		{
+			name:          "compact display",
+			totalFiles:    5,
+			selectedFiles: 2,
+			theme:         Theme{UseColors: false, UseEmojis: true, Compact: true},
+			contains:      []string{"📄", "Uncategorized", "(2/5)"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			ui := NewUI(&buf, tt.theme)
+			ui.UncategorizedInfo(tt.totalFiles, tt.selectedFiles)
+
+			output := buf.String()
+			for _, expected := range tt.contains {
+				if !strings.Contains(output, expected) {
+					t.Errorf("expected output to contain %q, got %q", expected, output)
+				}
+			}
+		})
+	}
+}
+
+func TestManualSelectionMenu(t *testing.T) {
+	var buf bytes.Buffer
+	theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
+	ui := NewUI(&buf, theme)
+
+	ui.ManualSelectionMenu(3, 15)
+	output := buf.String()
+
+	expected := []string{
+		"Choose Your Outfit", "3 outfit collections", "15 total outfits",
+		"Go back", "q",
+	}
+
+	for _, exp := range expected {
+		if !strings.Contains(output, exp) {
+			t.Errorf("expected output to contain %q, got %q", exp, output)
+		}
+	}
+}
+
+func TestDisplayFileGroup(t *testing.T) {
+	tests := []struct {
+		name          string
+		groupName     string
+		files         []string
+		selectedFiles map[string]bool
+		startIndex    int
+		expectedIndex int
+	}{
+		{
+			name:          "regular category",
+			groupName:     "Formal",
+			files:         []string{"suit.jpg", "dress.jpg"},
+			selectedFiles: map[string]bool{"suit.jpg": true},
+			startIndex:    1,
+			expectedIndex: 3,
+		},
+		{
+			name:          "uncategorized files",
+			groupName:     "Uncategorized",
+			files:         []string{"outfit1.jpg", "outfit2.jpg"},
+			selectedFiles: map[string]bool{},
+			startIndex:    5,
+			expectedIndex: 7,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var buf bytes.Buffer
+			theme := Theme{UseColors: true, UseEmojis: true, Compact: false}
+			ui := NewUI(&buf, theme)
+
+			nextIndex := ui.DisplayFileGroup(tt.groupName, tt.files, tt.selectedFiles, tt.startIndex)
+
+			if nextIndex != tt.expectedIndex {
+				t.Errorf("expected next index %d, got %d", tt.expectedIndex, nextIndex)
+			}
+
+			output := buf.String()
+
+			// Check group name display
+			if tt.groupName == "Uncategorized" {
+				if !strings.Contains(output, "Other Outfits") {
+					t.Error("expected 'Other Outfits' for uncategorized group")
+				}
+			} else {
+				if !strings.Contains(output, tt.groupName) {
+					t.Errorf("expected group name %q in output", tt.groupName)
+				}
+			}
+
+			// Check file listings
+			for _, file := range tt.files {
+				if !strings.Contains(output, file) {
+					t.Errorf("expected file %q in output", file)
+				}
+			}
+
+			// Check selected file indication
+			if tt.selectedFiles["suit.jpg"] {
+				if !strings.Contains(output, "already picked") {
+					t.Error("expected 'already picked' indication for selected file")
+				}
+			}
+		})
 	}
 }

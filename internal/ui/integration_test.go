@@ -17,13 +17,13 @@ func TestUIWorkflow(t *testing.T) {
 	categories := []string{"/path/to/Beach", "/path/to/Formal", "/path/to/Casual"}
 
 	// 1. Show main menu
-	ui.MainMenu(categories)
+	ui.MainMenu(categories, nil)
 	output1 := buf.String()
 
 	// Verify main menu contains expected elements
 	expectedMainMenu := []string{
-		"Outfit Picker", "Categories", "1", "Beach", "2", "Formal", "3", "Casual",
-		"All-categories options", "r", "s", "u", "q",
+		"Outfit Picker", "Outfit Folders", "1", "Beach", "2", "Formal", "3", "Casual",
+		"What would you like to do?", "r", "s", "u", "q",
 	}
 
 	for _, expected := range expectedMainMenu {
@@ -48,7 +48,7 @@ func TestUIWorkflow(t *testing.T) {
 	ui.Menu()
 	output3 := buf.String()
 
-	expectedMenu := []string{"Options", "r", "s", "u", "q"}
+	expectedMenu := []string{"What would you like to do?", "r", "s", "u", "q"}
 	for _, expected := range expectedMenu {
 		if !strings.Contains(output3, expected) {
 			t.Errorf("category menu missing %q", expected)
@@ -61,7 +61,7 @@ func TestUIWorkflow(t *testing.T) {
 	ui.RandomSelection("beach-outfit-1.jpg")
 	output4 := buf.String()
 
-	if !strings.Contains(output4, "Randomly selected") || !strings.Contains(output4, "beach-outfit-1.jpg") {
+	if !strings.Contains(output4, "I picked this outfit for you") || !strings.Contains(output4, "beach-outfit-1.jpg") {
 		t.Error("random selection not displayed correctly")
 	}
 
@@ -71,7 +71,7 @@ func TestUIWorkflow(t *testing.T) {
 	ui.KeepAction("beach-outfit-1.jpg")
 	output5 := buf.String()
 
-	if !strings.Contains(output5, "Kept and cached") || !strings.Contains(output5, "beach-outfit-1.jpg") {
+	if !strings.Contains(output5, "Great choice! I've saved") || !strings.Contains(output5, "beach-outfit-1.jpg") {
 		t.Error("keep action not displayed correctly")
 	}
 
@@ -150,7 +150,7 @@ func TestUIErrorHandling(t *testing.T) {
 	ui.SelectedFiles("", []string{})
 	ui.UnselectedFiles([]string{})
 	ui.CompletionSummary(0, 0, []string{})
-	ui.MainMenu([]string{})
+	ui.MainMenu([]string{}, nil)
 
 	output := buf.String()
 	if len(output) == 0 {
@@ -169,7 +169,7 @@ func TestUILargeDatasets(t *testing.T) {
 		largeCategories[i] = "/path/to/category" + string(rune('A'+i%26))
 	}
 
-	ui.MainMenu(largeCategories)
+	ui.MainMenu(largeCategories, nil)
 	output1 := buf.String()
 
 	if !strings.Contains(output1, "1") || !strings.Contains(output1, "100") {
@@ -187,7 +187,7 @@ func TestUILargeDatasets(t *testing.T) {
 	ui.SelectedFiles("TestCategory", largeFiles)
 	output2 := buf.String()
 
-	if !strings.Contains(output2, "1000 files") {
+	if !strings.Contains(output2, "1000 outfits") {
 		t.Error("large file list not handled correctly")
 	}
 }
@@ -270,7 +270,7 @@ func BenchmarkUIWorkflow(b *testing.B) {
 		var buf bytes.Buffer
 		ui := NewUI(&buf, theme)
 
-		ui.MainMenu(categories)
+		ui.MainMenu(categories, nil)
 		ui.CategoryInfo("Beach", 10, 3)
 		ui.Menu()
 		ui.SelectedFiles("Beach", files)
@@ -299,7 +299,7 @@ func BenchmarkUILargeDataset(b *testing.B) {
 		var buf bytes.Buffer
 		ui := NewUI(&buf, theme)
 
-		ui.MainMenu(categories)
+		ui.MainMenu(categories, nil)
 		ui.SelectedFiles("TestCategory", files)
 	}
 }

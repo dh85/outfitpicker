@@ -37,7 +37,6 @@ func newRootCmd() *cobra.Command {
 			}
 			return cmd.Help()
 		},
-
 	}
 
 	// Global flags
