@@ -21,11 +21,21 @@ type Config struct {
 }
 
 func Path() (string, error) {
-	dir, err := os.UserConfigDir()
+	dir, err := getConfigDir()
 	if err != nil {
 		return "", fmt.Errorf("failed to determine user config dir: %w", err)
 	}
 	return filepath.Join(dir, appName, configFileName), nil
+}
+
+// getConfigDir returns the config directory, respecting XDG_CONFIG_HOME for testing
+func getConfigDir() (string, error) {
+	// Check for XDG_CONFIG_HOME first (for test isolation)
+	if xdgConfig := os.Getenv("XDG_CONFIG_HOME"); xdgConfig != "" {
+		return xdgConfig, nil
+	}
+	// Fall back to system default
+	return os.UserConfigDir()
 }
 
 func Load() (*Config, error) {
