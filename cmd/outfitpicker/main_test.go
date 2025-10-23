@@ -288,7 +288,8 @@ func TestConfigShowWithExistingConfig(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
 	// Save config first
-	testRoot := "/test/root"
+	testRoot := filepath.Join(tempDir, "test-root")
+	os.MkdirAll(testRoot, 0755)
 	config.Save(&config.Config{Root: testRoot})
 
 	cmd := newRootCmd()
