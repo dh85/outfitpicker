@@ -120,7 +120,10 @@ func TestRun_RandomAcrossAll(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "r\nq\n")
 	assertNoError(t, err, "random across all")
-	assertOutputContains(t, output, "🎲 Randomly selected:", "random selection")
+	// Check for either emoji version or plain text version
+	if !strings.Contains(output, "Randomly selected:") {
+		t.Fatalf("random selection: expected to contain 'Randomly selected:', got: %s", output)
+	}
 }
 
 func TestRun_ShowSelectedAcrossAll(t *testing.T) {
