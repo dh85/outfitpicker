@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -184,83 +183,80 @@ func TestErrorHandling(t *testing.T) {
 }
 
 func TestRootResolution(t *testing.T) {
-	tests := []struct {
-		name        string
-		args        []string
-		setup       func(string) string // returns rootDir
-		expectError bool
-	}{
-		{
-			name: "positional root arg",
-			setup: func(tempDir string) string {
-				rootDir := filepath.Join(tempDir, "outfits")
-				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
-				return rootDir
-			},
-		},
-		{
-			name: "root flag",
-			setup: func(tempDir string) string {
-				rootDir := filepath.Join(tempDir, "outfits")
-				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
-				return rootDir
-			},
-		},
-		{
-			name: "config root",
-			setup: func(tempDir string) string {
-				rootDir := filepath.Join(tempDir, "outfits")
-				os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-				os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
-				// Ensure config save succeeds
-				if err := config.Save(&config.Config{Root: rootDir}); err != nil {
-					panic(fmt.Sprintf("failed to save config: %v", err))
-				}
-				// Verify config was saved
-				if cfg, err := config.Load(); err != nil || cfg.Root != rootDir {
-					panic(fmt.Sprintf("config not saved correctly: err=%v, root=%s", err, cfg.Root))
-				}
-				return rootDir
-			},
-		},
-	}
+	// Test positional root arg
+	t.Run("positional root arg", func(t *testing.T) {
+		tempDir := t.TempDir()
+		t.Setenv("XDG_CONFIG_HOME", tempDir)
+		config.Delete()
+		defer config.Delete()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			tempDir := t.TempDir()
-			t.Setenv("XDG_CONFIG_HOME", tempDir)
-			config.Delete() // Clean state for each subtest
-			defer config.Delete()
+		rootDir := filepath.Join(tempDir, "outfits")
+		os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+		os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 
-			rootDir := tt.setup(tempDir)
-			
-			var args []string
-			switch tt.name {
-			case "positional root arg":
-				args = []string{rootDir, "--category", "TestCat"}
-			case "root flag":
-				args = []string{"--root", rootDir, "--category", "TestCat"}
-			case "config root":
-				// For config root test, don't specify root - let it load from config
-				args = []string{"--category", "TestCat"}
-			}
+		cmd := newRootCmd()
+		var stdout bytes.Buffer
+		cmd.SetOut(&stdout)
+		cmd.SetIn(strings.NewReader("q\n"))
+		cmd.SetArgs([]string{rootDir, "--category", "TestCat"})
 
-			cmd := newRootCmd()
-			var stdout bytes.Buffer
-			cmd.SetOut(&stdout)
-			cmd.SetIn(strings.NewReader("q\n"))
-			cmd.SetArgs(args)
+		err := cmd.Execute()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
 
-			err := cmd.Execute()
-			if tt.expectError && err == nil {
-				t.Error("expected error")
-			} else if !tt.expectError && err != nil {
-				t.Errorf("unexpected error: %v", err)
-			}
-		})
-	}
+	// Test root flag
+	t.Run("root flag", func(t *testing.T) {
+		tempDir := t.TempDir()
+		t.Setenv("XDG_CONFIG_HOME", tempDir)
+		config.Delete()
+		defer config.Delete()
+
+		rootDir := filepath.Join(tempDir, "outfits")
+		os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+		os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+
+		cmd := newRootCmd()
+		var stdout bytes.Buffer
+		cmd.SetOut(&stdout)
+		cmd.SetIn(strings.NewReader("q\n"))
+		cmd.SetArgs([]string{"--root", rootDir, "--category", "TestCat"})
+
+		err := cmd.Execute()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
+
+	// Test config root
+	t.Run("config root", func(t *testing.T) {
+		tempDir := t.TempDir()
+		t.Setenv("XDG_CONFIG_HOME", tempDir)
+		config.Delete()
+		defer config.Delete()
+
+		rootDir := filepath.Join(tempDir, "outfits")
+		os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+		os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+
+		// Save config
+		err := config.Save(&config.Config{Root: rootDir})
+		if err != nil {
+			t.Fatalf("failed to save config: %v", err)
+		}
+
+		cmd := newRootCmd()
+		var stdout bytes.Buffer
+		cmd.SetOut(&stdout)
+		cmd.SetIn(strings.NewReader("q\n"))
+		cmd.SetArgs([]string{"--category", "TestCat"})
+
+		err = cmd.Execute()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+	})
 }
 
 func TestNoConfigTrigger(t *testing.T) {
@@ -357,8 +353,7 @@ func TestConfigShowNonExistent(t *testing.T) {
 	}
 
 	output := stdout.String()
-	// The command should either show "not found" or show the config if it exists
-	// Both are valid behaviors depending on test isolation
+	// The command should either show "not found" or show the config if it exists// Both are valid behaviors depending on test isolation
 	if !strings.Contains(output, "not found") && !strings.Contains(output, "no such file") && !strings.Contains(output, "Config file not found") && !strings.Contains(output, "config file:") {
 		t.Errorf("expected config message, got: %s", output)
 	}

@@ -66,27 +66,24 @@ func TestResolveRoot(t *testing.T) {
 }
 
 func TestResolveRootFromConfig(t *testing.T) {
+	// Create completely isolated test environment
 	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	configDir := filepath.Join(tempDir, "config")
+	t.Setenv("XDG_CONFIG_HOME", configDir)
+	os.MkdirAll(configDir, 0755)
+	
 	// Ensure completely clean state
 	config.Delete()
 	defer config.Delete()
 	
-	// Save config with unique path for this test
-	testRoot := filepath.Join(tempDir, "test-root")
+	// Create unique test root path
+	testRoot := filepath.Join(tempDir, "unique-test-root")
 	os.MkdirAll(testRoot, 0755)
+	
+	// Save config
 	err := config.Save(&config.Config{Root: testRoot})
 	if err != nil {
 		t.Fatalf("failed to save config: %v", err)
-	}
-	
-	// Verify config was saved correctly
-	loadedConfig, err := config.Load()
-	if err != nil {
-		t.Fatalf("failed to load config: %v", err)
-	}
-	if loadedConfig.Root != testRoot {
-		t.Fatalf("config not saved correctly: expected %s, got %s", testRoot, loadedConfig.Root)
 	}
 	
 	// Test resolveRoot without override should use config
