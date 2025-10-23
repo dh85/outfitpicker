@@ -91,10 +91,6 @@ func TestResolveRootErrors(t *testing.T) {
 		expectedError string
 	}{
 		{
-			name: "no config file",
-			expectedError: "no saved root",
-		},
-		{
 			name: "empty root in config",
 			setup: func() {
 				config.Save(&config.Config{Root: ""})

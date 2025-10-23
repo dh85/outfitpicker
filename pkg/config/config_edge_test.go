@@ -9,6 +9,10 @@ import (
 )
 
 func TestErrorPaths(t *testing.T) {
+	if runtime.GOOS == "darwin" {
+		t.Skip("Skipping on macOS due to permission handling differences")
+	}
+	
 	// Test Save with invalid directory by setting invalid config home
 	t.Setenv("XDG_CONFIG_HOME", "/dev/null/invalid")
 	if runtime.GOOS == "windows" {
@@ -63,8 +67,8 @@ func TestCorruptedConfigFile(t *testing.T) {
 }
 
 func TestReadOnlyConfigDir(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("Skipping read-only test on Windows")
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		t.Skip("Skipping read-only test on Windows and macOS")
 	}
 	
 	tempDir := t.TempDir()

@@ -144,6 +144,10 @@ func TestConfigCommandsWithUI(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Set up clean test environment
+			tempDir := t.TempDir()
+			t.Setenv("XDG_CONFIG_HOME", tempDir)
+			
 			var buf bytes.Buffer
 			cmd := newRootCmd()
 			cmd.SetOut(&buf)
