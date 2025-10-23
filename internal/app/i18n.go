@@ -32,7 +32,12 @@ func DetectLocale() string {
 	if lang := os.Getenv("LANG"); lang != "" {
 		// Extract language code (e.g., "es_ES.UTF-8" -> "es")
 		if parts := strings.Split(lang, "_"); len(parts) > 0 {
-			return strings.ToLower(parts[0])
+			langCode := strings.ToLower(parts[0])
+			// Handle "c" locale (common in CI environments) as English
+			if langCode == "c" {
+				return "en"
+			}
+			return langCode
 		}
 	}
 
@@ -40,7 +45,12 @@ func DetectLocale() string {
 	for _, env := range []string{"LC_ALL", "LC_MESSAGES"} {
 		if lang := os.Getenv(env); lang != "" {
 			if parts := strings.Split(lang, "_"); len(parts) > 0 {
-				return strings.ToLower(parts[0])
+				langCode := strings.ToLower(parts[0])
+				// Handle "c" locale as English
+				if langCode == "c" {
+					return "en"
+				}
+				return langCode
 			}
 		}
 	}
