@@ -2,10 +2,12 @@
 
 ## 🚀 Get Started in 3 Steps
 
-### 1. Install (macOS and Linux)
+### 1. Install
+**macOS and Linux**:
 ```bash
 curl -fsSL https://raw.githubusercontent.com/dh85/outfitpicker/main/install.sh | bash
 ```
+**Windows users**: Download from [releases page](https://github.com/dh85/outfitpicker/releases)
 
 ### 2. Organize Your Outfits
 Create folders for your outfit types:
