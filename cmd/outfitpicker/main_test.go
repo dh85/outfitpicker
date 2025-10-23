@@ -52,6 +52,8 @@ func TestConfigCommands(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set temp config dir
 			t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+			// Ensure cleanup after each subtest
+			defer config.Delete()
 
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
@@ -207,6 +209,8 @@ func TestRootResolution(t *testing.T) {
 			name: "config root",
 			args: []string{"--category", "TestCat"},
 			setup: func() {
+				// Ensure the directory exists before saving to config
+				os.MkdirAll(rootDir, 0755)
 				config.Save(&config.Config{Root: rootDir})
 			},
 		},
@@ -259,6 +263,7 @@ func TestNoConfigTrigger(t *testing.T) {
 func TestConfigFromSaved(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer config.Delete()
 
 	// Create test structure
 	rootDir := filepath.Join(tempDir, "outfits")
@@ -336,6 +341,7 @@ func TestConfigShowNonExistent(t *testing.T) {
 func TestConfigReset(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	defer config.Delete()
 
 	// Save config first
 	testRoot := filepath.Join(tempDir, "test-config-root")

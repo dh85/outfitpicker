@@ -185,6 +185,8 @@ func TestConfigCommands(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup()
 			}
+			// Ensure cleanup after each subtest
+			defer config.Delete()
 			
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
