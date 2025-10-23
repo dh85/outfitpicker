@@ -10,9 +10,9 @@ import (
 
 func TestErrorPaths(t *testing.T) {
 	// Test Save with invalid directory by setting invalid config home
-	t.Setenv("XDG_CONFIG_HOME", "/root/invalid/path")
+	t.Setenv("XDG_CONFIG_HOME", "/dev/null/invalid")
 	if runtime.GOOS == "windows" {
-		t.Setenv("APPDATA", "C:\\invalid\\path")
+		t.Setenv("APPDATA", "NUL:\\invalid")
 	}
 	
 	err := Save(&Config{Root: "/test"})
@@ -69,11 +69,13 @@ func TestReadOnlyConfigDir(t *testing.T) {
 	
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "outfitpicker")
+	configFile := filepath.Join(configDir, "config.json")
 	os.MkdirAll(configDir, 0755)
 	
-	// Make directory read-only
-	os.Chmod(configDir, 0444)
-	defer os.Chmod(configDir, 0755) // Restore for cleanup
+	// Create a file where config should go, then make it read-only
+	os.WriteFile(configFile, []byte("existing"), 0644)
+	os.Chmod(configFile, 0444)
+	defer os.Chmod(configFile, 0644) // Restore for cleanup
 	
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 	

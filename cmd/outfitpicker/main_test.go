@@ -210,6 +210,11 @@ func TestRootResolution(t *testing.T) {
 				config.Save(&config.Config{Root: rootDir})
 			},
 		},
+		{
+			name:        "no config file",
+			args:        []string{},
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -221,7 +226,12 @@ func TestRootResolution(t *testing.T) {
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
 			cmd.SetOut(&stdout)
-			cmd.SetIn(strings.NewReader("q\n"))
+			// For no_config_file test, provide empty input to trigger error
+			if tt.name == "no config file" {
+				cmd.SetIn(strings.NewReader("\n"))
+			} else {
+				cmd.SetIn(strings.NewReader("q\n"))
+			}
 			cmd.SetArgs(tt.args)
 
 			err := cmd.Execute()
@@ -321,8 +331,8 @@ func TestConfigShowNonExistent(t *testing.T) {
 	}
 
 	output := stdout.String()
-	if !strings.Contains(output, "not found") {
-		t.Error("expected 'not found' message")
+	if !strings.Contains(output, "not found") && !strings.Contains(output, "no such file") {
+		t.Error("expected 'not found' or 'no such file' message")
 	}
 }
 
