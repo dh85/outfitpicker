@@ -120,7 +120,7 @@ func TestRun_RandomAcrossAll(t *testing.T) {
 	root := createTestStructure(t)
 	output, err := runTest(root, "", "r\nq\n")
 	assertNoError(t, err, "random across all")
-	assertOutputContains(t, output, "Randomly selected:", "random selection")
+	assertOutputContains(t, output, "🎲 Randomly selected:", "random selection")
 }
 
 func TestRun_ShowSelectedAcrossAll(t *testing.T) {
