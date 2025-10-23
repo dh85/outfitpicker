@@ -231,29 +231,46 @@ func TestCacheShowEmpty(t *testing.T) {
 
 func TestCacheShowWithData(t *testing.T) {
 	tempDir := t.TempDir()
-	t.Setenv("XDG_CONFIG_HOME", tempDir)
+	configDir := filepath.Join(tempDir, "config")
+	t.Setenv("XDG_CONFIG_HOME", configDir)
+	os.MkdirAll(configDir, 0755)
+	config.Delete() // Ensure clean state
+	defer config.Delete()
 	
 	// Create root with cache data
 	rootDir := filepath.Join(tempDir, "root")
-	mgr, _ := storage.NewManager(rootDir)
+	os.MkdirAll(rootDir, 0755) // Ensure root directory exists
+	
+	mgr, err := storage.NewManager(rootDir)
+	if err != nil {
+		t.Fatalf("failed to create storage manager: %v", err)
+	}
+	
+	// Add data - this automatically saves
 	mgr.Add("test.jpg", filepath.Join(rootDir, "TestCat"))
+	
+	// Verify cache was created
+	data := mgr.Load()
+	if len(data) == 0 {
+		t.Fatal("cache data was not saved")
+	}
 	
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
 	cmd.SetOut(&stdout)
 	cmd.SetArgs([]string{"cache", "show", "--root", rootDir})
 	
-	err := cmd.Execute()
+	err = cmd.Execute()
 	if err != nil {
 		t.Errorf("cache show failed: %v", err)
 	}
 	
 	output := stdout.String()
 	if !strings.Contains(output, "TestCat") {
-		t.Error("expected category in output")
+		t.Errorf("expected category in output, got: %s", output)
 	}
 	if !strings.Contains(output, "1 selected") {
-		t.Error("expected selection count")
+		t.Errorf("expected selection count in output, got: %s", output)
 	}
 }
 
