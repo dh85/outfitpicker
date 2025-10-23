@@ -2,12 +2,12 @@
 
 ## 🚀 Get Started in 3 Steps
 
-### 1. Install
+### 1. Install (macOS and Linux)
 ```bash
 curl -fsSL https://raw.githubusercontent.com/dh85/outfitpicker/main/install.sh | bash
 ```
 
-### 2. Organize Your Photos
+### 2. Organize Your Outfits
 Create folders for your outfit types:
 ```
 My Outfits/
@@ -51,10 +51,10 @@ Follow the setup wizard, then pick outfits!
 
 ## 💡 Pro Tips
 
-- **File names matter**: Use descriptive names like `blue-jeans-white-tee.jpg`
+- **File names matter**: Use descriptive names like `blue-jeans-white-tee.avatar`
 - **Trust the randomness**: Let it surprise you!
 - **Reset seasonally**: Clear your history when seasons change
-- **Mix loose files**: Photos outside folders work too!
+- **Mix loose files**: Outfits outside folders work too!
 
 ---
 📖 **Need more help?** See the full [User Guide](USER_GUIDE.md)
