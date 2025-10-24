@@ -30,12 +30,26 @@ type FileEntry struct {
 
 // CategoryManager handles category operations
 type CategoryManager struct {
-	cache  *storage.Manager
-	stdout io.Writer
+	cache     *storage.Manager
+	stdout    io.Writer
+	filePool  []FileEntry
+	poolDirty bool
+	metrics   *Metrics
+}
+
+// newUIInstance creates a UI instance with consistent theme
+func (cm *CategoryManager) newUIInstance(compact bool) *ui.UI {
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: compact}
+	return ui.NewUI(cm.stdout, theme)
 }
 
 func NewCategoryManager(cache *storage.Manager, stdout io.Writer) *CategoryManager {
-	return &CategoryManager{cache: cache, stdout: stdout}
+	return &CategoryManager{
+		cache:     cache,
+		stdout:    stdout,
+		poolDirty: true,
+		metrics:   NewMetrics(),
+	}
 }
 
 func listCategories(rootAbs string) ([]string, error) {
@@ -61,7 +75,10 @@ func listCategories(rootAbs string) ([]string, error) {
 func (cm *CategoryManager) loadCategory(categoryPath string) (*Category, error) {
 	ents, err := os.ReadDir(categoryPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read category %q: %w", filepath.Base(categoryPath), err)
+		return nil, NewFileSystemError(
+			fmt.Sprintf("failed to read category %q", filepath.Base(categoryPath)),
+			err,
+		)
 	}
 
 	var files []string
@@ -72,7 +89,10 @@ func (cm *CategoryManager) loadCategory(categoryPath string) (*Category, error) 
 	}
 
 	if len(files) == 0 {
-		return nil, fmt.Errorf("no files found in category %q", filepath.Base(categoryPath))
+		return nil, NewCategoryError(
+			fmt.Sprintf("no files found in category %q", filepath.Base(categoryPath)),
+			nil,
+		)
 	}
 
 	return &Category{Path: categoryPath, Files: files}, nil
@@ -85,7 +105,7 @@ func (cm *CategoryManager) getSelectedFiles(categoryPath string) map[string]bool
 
 func (cm *CategoryManager) getUnselectedFiles(category *Category) []string {
 	seen := cm.getSelectedFiles(category.Path)
-	var unselected []string
+	unselected := make([]string, 0, len(category.Files))
 
 	for _, f := range category.Files {
 		if !seen[filepath.Base(f)] {
@@ -99,7 +119,7 @@ func (cm *CategoryManager) getUnselectedFiles(category *Category) []string {
 
 func (cm *CategoryManager) getAvailableFiles(category *Category) []string {
 	seen := cm.getSelectedFiles(category.Path)
-	var available []string
+	available := make([]string, 0, len(category.Files))
 
 	for _, f := range category.Files {
 		if !seen[filepath.Base(f)] {
@@ -112,37 +132,34 @@ func (cm *CategoryManager) getAvailableFiles(category *Category) []string {
 
 func (cm *CategoryManager) displayCategoryInfo(category *Category) {
 	seen := cm.getSelectedFiles(category.Path)
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
-	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance := cm.newUIInstance(false)
 	uiInstance.CategoryInfo(filepath.Base(category.Path), len(category.Files), len(seen))
 }
 
 func (cm *CategoryManager) displayMenu() {
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
-	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance := cm.newUIInstance(false)
 	uiInstance.Menu()
 }
 
 func (cm *CategoryManager) showSelectedFiles(categoryPath string) {
 	seen := cm.getSelectedFiles(categoryPath)
 	list := mapKeys(seen)
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
-	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance := cm.newUIInstance(false)
 	uiInstance.SelectedFiles(filepath.Base(categoryPath), list)
 }
 
 func (cm *CategoryManager) showUnselectedFiles(category *Category) {
 	unselected := cm.getUnselectedFiles(category)
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
-	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance := cm.newUIInstance(false)
 	uiInstance.UnselectedFiles(unselected)
 }
 
 func (cm *CategoryManager) handleKeepAction(file FileEntry) error {
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
-	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance := cm.newUIInstance(true)
 	uiInstance.KeepAction(file.FileName)
 	cm.cache.Add(file.FileName, file.CategoryPath)
+	cm.poolDirty = true // Mark pool as dirty when cache changes
+	cm.metrics.RecordSelection()
 
 	done, err := cm.isCategoryComplete(file.CategoryPath)
 	if err != nil {
@@ -166,8 +183,7 @@ func (cm *CategoryManager) displayCompletionSummary(categoryPath string) {
 	}
 
 	completed, total, names := cm.getCompletionSummary(cats)
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
-	uiInstance := ui.NewUI(cm.stdout, theme)
+	uiInstance := cm.newUIInstance(true)
 	uiInstance.CompletionSummary(completed, total, names)
 }
 
@@ -189,7 +205,7 @@ func (cm *CategoryManager) isCategoryComplete(catPath string) (bool, error) {
 func (cm *CategoryManager) getCompletionSummary(categories []string) (int, int, []string) {
 	m := cm.cache.Load()
 	completed := 0
-	var names []string
+	names := make([]string, 0, len(categories))
 
 	for _, cat := range categories {
 		total, err := categoryFileCount(cat)
@@ -207,19 +223,47 @@ func (cm *CategoryManager) getCompletionSummary(categories []string) (int, int, 
 	return completed, len(categories), names
 }
 
+// getFilePool returns cached file pool or rebuilds if dirty
+func (cm *CategoryManager) getFilePool(categories, uncategorized []string) []FileEntry {
+	if cm.poolDirty || cm.filePool == nil {
+		cm.filePool = cm.buildFilePool(categories, uncategorized)
+		cm.poolDirty = false
+	}
+	return cm.filePool
+}
+
 func (cm *CategoryManager) handleRandomSelection(category *Category, pr *prompter) error {
 	available := cm.getAvailableFiles(category)
+	skipped := make(map[string]bool)
 
 	for {
-		if len(available) == 0 {
-			fmt.Fprintf(cm.stdout, "\n🎉 Amazing! You've picked all the outfits from %s!\n", filepath.Base(category.Path))
-			cm.cache.Clear(category.Path)
-			fmt.Fprintf(cm.stdout, "I've reset this folder so you can pick from it again!\n")
+		// Filter out skipped files
+		currentAvailable := make([]string, 0, len(available))
+		for _, f := range available {
+			if !skipped[f] {
+				currentAvailable = append(currentAvailable, f)
+			}
+		}
+
+		if len(currentAvailable) == 0 {
+			if len(available) == 0 {
+				fmt.Fprintf(cm.stdout, "\n🎉 Amazing! You've picked all the outfits from %s!\n", filepath.Base(category.Path))
+				cm.cache.Clear(category.Path)
+				fmt.Fprintf(cm.stdout, "I've reset this folder so you can pick from it again!\n")
+				return nil
+			}
+			fmt.Fprintln(cm.stdout, "⚠️ You've skipped all available outfits in this category.")
+			fmt.Fprint(cm.stdout, "Try again with the same outfits? [y/N]: ")
+			response, _ := pr.readLineLower()
+			if response == "y" {
+				skipped = make(map[string]bool)
+				continue
+			}
 			return nil
 		}
 
-		idx := rand.Intn(len(available))
-		randomFile := available[idx]
+		idx := rand.Intn(len(currentAvailable))
+		randomFile := currentAvailable[idx]
 		file := FileEntry{
 			CategoryPath: category.Path,
 			FilePath:     randomFile,
@@ -244,10 +288,10 @@ func (cm *CategoryManager) handleRandomSelection(category *Category, pr *prompte
 			cm.displayCompletionSummary(category.Path)
 			return nil
 		case "s":
-			theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
-			uiInstance := ui.NewUI(cm.stdout, theme)
+			uiInstance := cm.newUIInstance(true)
 			uiInstance.SkipAction(file.FileName)
-			available = append(available[:idx], available[idx+1:]...)
+			skipped[randomFile] = true
+			cm.metrics.RecordSkip()
 		case "q":
 			fmt.Fprintln(cm.stdout, "Exiting.")
 			return nil
@@ -286,56 +330,69 @@ func runCategoryFlow(categoryPath string, cache *storage.Manager, pr *prompter, 
 
 func randomAcrossAll(categories, uncategorized []string, cache *storage.Manager, pr *prompter, stdout io.Writer) error {
 	cm := NewCategoryManager(cache, stdout)
-	pool := cm.buildFilePool(categories, uncategorized)
+	pool := cm.getFilePool(categories, uncategorized)
+	skipped := make(map[string]bool)
+	defer cm.metrics.LogSession()
 
-	if len(pool) == 0 {
-		fmt.Fprintln(stdout, "🎉 Amazing! You've picked all your outfits!")
-		for _, cat := range categories {
-			cache.Clear(cat)
+	for {
+		// Filter out skipped files from pool
+		available := make([]FileEntry, 0, len(pool))
+		for _, file := range pool {
+			if !skipped[file.FilePath] {
+				available = append(available, file)
+			}
 		}
-		if len(uncategorized) > 0 {
-			cache.Clear("UNCATEGORIZED")
+
+		if len(available) == 0 {
+			fmt.Fprintln(stdout, "⚠️ You've skipped all available outfits in this session.")
+			fmt.Fprint(stdout, "Try again with the same outfits? [y/N]: ")
+			response, _ := pr.readLineLower()
+			if response == "y" {
+				skipped = make(map[string]bool)
+				continue
+			}
+			return nil
 		}
-		fmt.Fprintln(stdout, "Starting fresh - you can pick from all your outfits again!")
-		return nil
-	}
 
-	file := pool[rand.Intn(len(pool))]
-	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
-	uiInstance := ui.NewUI(stdout, theme)
-
-	if file.CategoryPath == "UNCATEGORIZED" {
-		fmt.Fprintf(stdout, "\n📄 From your other outfits\n")
-	} else {
-		fmt.Fprintf(stdout, "\n📂 From your %s collection\n", filepath.Base(file.CategoryPath))
-	}
-	uiInstance.RandomSelection(file.FileName)
-
-	action, err := pr.readLineLowerDefault("k")
-	if err != nil && !errors.Is(err, io.EOF) {
-		fmt.Fprintln(stdout, "invalid action. please try again.")
-		return nil
-	}
-
-	switch action {
-	case "k":
-		if err := cm.handleKeepAction(file); err != nil {
-			return err
-		}
-		completed, total, names := cm.getCompletionSummary(categories)
-		cm.displayCompletionSummaryFormatted(completed, total, names)
-	case "s":
-		theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: true}
+		file := available[rand.Intn(len(available))]
+		theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
 		uiInstance := ui.NewUI(stdout, theme)
-		uiInstance.Info("Skipped! Run the app again to get another outfit suggestion")
-	case "d":
-		return handleDeleteFile(file.FilePath, pr, stdout)
-	case "q":
-		fmt.Fprintln(stdout, "Exiting.")
-	default:
-		fmt.Fprintln(stdout, "invalid action. please try again.")
+
+		if file.CategoryPath == "UNCATEGORIZED" {
+			fmt.Fprintf(stdout, "\n📄 From your other outfits\n")
+		} else {
+			fmt.Fprintf(stdout, "\n📂 From your %s collection\n", filepath.Base(file.CategoryPath))
+		}
+		uiInstance.RandomSelection(file.FileName)
+
+		action, err := pr.readLineLowerDefault("k")
+		if err != nil && !errors.Is(err, io.EOF) {
+			fmt.Fprintln(stdout, "invalid action. please try again.")
+			continue
+		}
+
+		switch action {
+		case "k":
+			if err := cm.handleKeepAction(file); err != nil {
+				return err
+			}
+			completed, total, names := cm.getCompletionSummary(categories)
+			cm.displayCompletionSummaryFormatted(completed, total, names)
+			return nil
+		case "s":
+			uiInstance := cm.newUIInstance(true)
+			uiInstance.SkipAction(file.FileName)
+			skipped[file.FilePath] = true
+			cm.metrics.RecordSkip()
+		case "d":
+			return handleDeleteFile(file.FilePath, pr, stdout)
+		case "q":
+			fmt.Fprintln(stdout, "Exiting.")
+			return nil
+		default:
+			fmt.Fprintln(stdout, "invalid action. please try again.")
+		}
 	}
-	return nil
 }
 
 func (cm *CategoryManager) buildFilePool(categories, uncategorized []string) []FileEntry {

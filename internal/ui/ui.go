@@ -83,24 +83,24 @@ func NewUIWithI18nAndLang(writer io.Writer, theme Theme, i18n I18n, langCode str
 // Header displays a formatted header with title
 func (u *UI) Header(title string) {
 	if u.theme.Compact {
-		fmt.Fprintf(u.writer, "%s %s\n", u.icon(IconMenu), title)
+		fmt.Fprintf(u.writer, "%s%s\n", u.icon(IconMenu), title)
 		return
 	}
 
 	separator := strings.Repeat(IconSeparator, len(title)+4)
 	fmt.Fprintf(u.writer, "\n%s\n", u.colorize(separator, Cyan))
-	fmt.Fprintf(u.writer, "%s %s %s\n", u.colorize(IconSeparator, Cyan), u.colorize(title, Bold+Cyan), u.colorize(IconSeparator, Cyan))
+	fmt.Fprintf(u.writer, "%s%s %s\n", u.colorize(IconSeparator, Cyan), u.colorize(title, Bold+Cyan), u.colorize(IconSeparator, Cyan))
 	fmt.Fprintf(u.writer, "%s\n\n", u.colorize(separator, Cyan))
 }
 
 // CategoryInfo displays category information with enhanced formatting
 func (u *UI) CategoryInfo(name string, totalFiles, selectedFiles int) {
 	if u.theme.Compact {
-		fmt.Fprintf(u.writer, "%s %s (%d/%d)\n", u.icon(IconFolder), name, selectedFiles, totalFiles)
+		fmt.Fprintf(u.writer, "%s%s (%d/%d)\n", u.icon(IconFolder), name, selectedFiles, totalFiles)
 		return
 	}
 
-	fmt.Fprintf(u.writer, "\n%s %s\n", u.icon(IconFolder), u.colorize(name, Bold+Blue))
+	fmt.Fprintf(u.writer, "\n%s%s\n", u.icon(IconFolder), u.colorize(name, Bold+Blue))
 	fmt.Fprintf(u.writer, "   %s Total files: %s\n", u.icon(IconFile), u.colorize(fmt.Sprintf("%d", totalFiles), Green))
 	fmt.Fprintf(u.writer, "   %s Selected: %s\n", u.icon(IconCheck), u.colorize(fmt.Sprintf("%d", selectedFiles), Yellow))
 
@@ -151,7 +151,7 @@ func (u *UI) MainMenu(categories, uncategorized []string) {
 		if u.i18n != nil {
 			folderTitle = u.i18n.T("outfit_folders")
 		}
-		fmt.Fprintf(u.writer, "%s %s\n", u.icon(IconFolder), u.colorize(folderTitle, Bold+Blue))
+		fmt.Fprintf(u.writer, "%s%s\n", u.icon(IconFolder), u.colorize(folderTitle, Bold+Blue))
 		for i, c := range categories {
 			name := strings.TrimSuffix(c, "/")
 			if idx := strings.LastIndex(name, "/"); idx >= 0 {
@@ -292,7 +292,7 @@ func (u *UI) RandomSelection(filename string) {
 
 // KeepAction displays keep confirmation
 func (u *UI) KeepAction(filename string) {
-	fmt.Fprintf(u.writer, "%s %s: %s\n",
+	fmt.Fprintf(u.writer, "%s%s: %s\n",
 		u.icon(IconCheck),
 		u.colorize("Great choice! I've saved", Green),
 		filename)
@@ -300,7 +300,7 @@ func (u *UI) KeepAction(filename string) {
 
 // SkipAction displays skip confirmation
 func (u *UI) SkipAction(filename string) {
-	fmt.Fprintf(u.writer, "%s %s: %s\n",
+	fmt.Fprintf(u.writer, "%s%s: %s\n",
 		u.icon(IconWarning),
 		u.colorize("Skipped", Yellow),
 		filename)
@@ -309,7 +309,7 @@ func (u *UI) SkipAction(filename string) {
 // CompletionSummary displays completion status
 func (u *UI) CompletionSummary(completed, total int, names []string) {
 	if completed == 0 {
-		fmt.Fprintf(u.writer, "%s Outfit folders complete: %s\n",
+		fmt.Fprintf(u.writer, "%sOutfit folders complete: %s\n",
 			u.icon(IconInfo),
 			u.colorize(fmt.Sprintf("%d/%d", completed, total), Yellow))
 		return
@@ -325,7 +325,7 @@ func (u *UI) CompletionSummary(completed, total int, names []string) {
 		color = Green
 	}
 
-	fmt.Fprintf(u.writer, "%s Outfit folders complete: %s%s\n",
+	fmt.Fprintf(u.writer, "%sOutfit folders complete: %s%s\n",
 		u.icon(IconCheck),
 		u.colorize(fmt.Sprintf("%d/%d", completed, total), color),
 		suffix)
@@ -333,7 +333,7 @@ func (u *UI) CompletionSummary(completed, total int, names []string) {
 
 // Error displays error messages
 func (u *UI) Error(message string) {
-	fmt.Fprintf(u.writer, "%s %s: %s\n",
+	fmt.Fprintf(u.writer, "%s%s: %s\n",
 		u.icon(IconCross),
 		u.colorize("Error", Bold+Red),
 		message)
@@ -341,21 +341,21 @@ func (u *UI) Error(message string) {
 
 // Success displays success messages
 func (u *UI) Success(message string) {
-	fmt.Fprintf(u.writer, "%s %s\n",
+	fmt.Fprintf(u.writer, "%s%s\n",
 		u.icon(IconCheck),
 		u.colorize(message, Green))
 }
 
 // Info displays info messages
 func (u *UI) Info(message string) {
-	fmt.Fprintf(u.writer, "%s %s\n",
+	fmt.Fprintf(u.writer, "%s%s\n",
 		u.icon(IconInfo),
 		message)
 }
 
 // Warning displays warning messages
 func (u *UI) Warning(message string) {
-	fmt.Fprintf(u.writer, "%s %s\n",
+	fmt.Fprintf(u.writer, "%s%s\n",
 		u.icon(IconWarning),
 		u.colorize(message, Yellow))
 }
@@ -382,7 +382,7 @@ func (u *UI) icon(emoji string) string {
 	if !u.theme.UseEmojis {
 		return ""
 	}
-	return emoji
+	return emoji + " "
 }
 
 func (u *UI) createProgressBar(percentage float64, width int) string {
@@ -400,7 +400,7 @@ func (u *UI) createProgressBar(percentage float64, width int) string {
 func (u *UI) UncategorizedOnlyMenu(fileCount int) {
 	u.Header("Outfit Picker")
 
-	fmt.Fprintf(u.writer, "%s %s (%d outfits available)\n",
+	fmt.Fprintf(u.writer, "%s%s (%d outfits available)\n",
 		u.icon(IconFile),
 		u.colorize("Your Outfits", Bold+Blue),
 		fileCount)
@@ -428,7 +428,7 @@ func (u *UI) UncategorizedOnlyMenu(fileCount int) {
 // UncategorizedInfo displays uncategorized file information
 func (u *UI) UncategorizedInfo(totalFiles, selectedFiles int) {
 	if u.theme.Compact {
-		fmt.Fprintf(u.writer, "%s Uncategorized (%d/%d)\n", u.icon(IconFile), selectedFiles, totalFiles)
+		fmt.Fprintf(u.writer, "%sUncategorized (%d/%d)\n", u.icon(IconFile), selectedFiles, totalFiles)
 		return
 	}
 
@@ -447,7 +447,7 @@ func (u *UI) UncategorizedInfo(totalFiles, selectedFiles int) {
 func (u *UI) ManualSelectionMenu(groupCount, totalFiles int) {
 	u.Header("Choose Your Outfit")
 
-	fmt.Fprintf(u.writer, "%s %d outfit collections with %d total outfits\n",
+	fmt.Fprintf(u.writer, "%s%d outfit collections with %d total outfits\n",
 		u.icon(IconFolder), groupCount, totalFiles)
 
 	fmt.Fprintf(u.writer, "\n  [%s] %s Go back\n",

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -19,6 +20,45 @@ const (
 type Config struct {
 	Root     string `json:"root"`
 	Language string `json:"language,omitempty"`
+}
+
+var supportedLanguages = []string{
+	"en", "es", "fr", "de", "it", "pt", "nl", "ru", "ja", "zh", "ko", "ar", "hi",
+}
+
+// Validate checks if the config is valid
+func (c *Config) Validate() error {
+	if c.Root == "" {
+		return fmt.Errorf("root directory is required")
+	}
+	if err := validatePath(c.Root); err != nil {
+		return fmt.Errorf("invalid root path: %w", err)
+	}
+	if _, err := os.Stat(c.Root); os.IsNotExist(err) {
+		return fmt.Errorf("root directory does not exist: %s", c.Root)
+	}
+	if c.Language != "" && !isValidLanguage(c.Language) {
+		return fmt.Errorf("unsupported language: %s", c.Language)
+	}
+	return nil
+}
+
+// validatePath checks for path traversal attacks
+func validatePath(path string) error {
+	cleaned := filepath.Clean(path)
+	if strings.Contains(cleaned, "..") {
+		return fmt.Errorf("path traversal not allowed")
+	}
+	return nil
+}
+
+func isValidLanguage(lang string) bool {
+	for _, supported := range supportedLanguages {
+		if lang == supported {
+			return true
+		}
+	}
+	return false
 }
 
 func Path() (string, error) {
@@ -52,6 +92,9 @@ func Load() (*Config, error) {
 }
 
 func Save(c *Config) error {
+	if err := c.Validate(); err != nil {
+		return fmt.Errorf("config validation failed: %w", err)
+	}
 	p, err := getConfigPath()
 	if err != nil {
 		return err
