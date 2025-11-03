@@ -45,7 +45,7 @@ func TestConfigFile_JSONSupport(t *testing.T) {
 
 	// Write JSON content to YAML file (should still parse)
 	jsonContent := `{"showEmojis": false, "defaultAction": "q"}`
-	os.WriteFile(configPath, []byte(jsonContent), 0644)
+	_ = os.WriteFile(configPath, []byte(jsonContent), 0644)
 
 	configFile := NewConfigFile(tempDir)
 	config, err := configFile.Load()

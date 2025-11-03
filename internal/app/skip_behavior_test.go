@@ -30,9 +30,9 @@ func TestSkipBehavior(t *testing.T) {
 
 			// Create test files
 			catDir := filepath.Join(tempDir, "casual")
-			os.MkdirAll(catDir, 0755)
-			os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
-			os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
+			_ = os.MkdirAll(catDir, 0755)
+			_ = os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
+			_ = os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
 
 			cache, _ := storage.NewManager(tempDir)
 			categories := []string{catDir}
@@ -41,7 +41,7 @@ func TestSkipBehavior(t *testing.T) {
 			stdout := &bytes.Buffer{}
 			pr := &prompter{r: bufio.NewReader(strings.NewReader(tt.input)), w: stdout}
 
-			randomAcrossAll(categories, uncategorized, cache, pr, stdout)
+			_ = randomAcrossAll(categories, uncategorized, cache, pr, stdout)
 
 			output := stdout.String()
 			for _, expected := range tt.expected {

@@ -69,11 +69,11 @@ func TestListCategoriesWithSpecialDirectories(t *testing.T) {
 	f := testutil.NewTestFixture(t)
 
 	// Create various directory types
-	os.MkdirAll(filepath.Join(f.TempDir, "Normal"), 0755)
-	os.MkdirAll(filepath.Join(f.TempDir, ".hidden"), 0755)
-	os.MkdirAll(filepath.Join(f.TempDir, "Downloads"), 0755)
-	os.MkdirAll(filepath.Join(f.TempDir, "downloads"), 0755) // Different case
-	os.WriteFile(filepath.Join(f.TempDir, "file.txt"), []byte("test"), 0644)
+	_ = os.MkdirAll(filepath.Join(f.TempDir, "Normal"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.TempDir, ".hidden"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.TempDir, "Downloads"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.TempDir, "downloads"), 0755) // Different case
+	_ = os.WriteFile(filepath.Join(f.TempDir, "file.txt"), []byte("test"), 0644)
 
 	categories, err := listCategories(f.TempDir)
 	if err != nil {

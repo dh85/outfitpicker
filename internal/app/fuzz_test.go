@@ -28,7 +28,7 @@ func FuzzCategoryFlow(f *testing.F) {
 		pr := &prompter{r: bufio.NewReader(strings.NewReader(input))}
 
 		// Should not panic
-		runCategoryFlow(catPath, fixture.Cache, pr, &stdout)
+		_ = runCategoryFlow(catPath, fixture.Cache, pr, &stdout)
 	})
 }
 
@@ -47,7 +47,7 @@ func FuzzListCategories(f *testing.F) {
 
 		tempDir := t.TempDir()
 		catPath := filepath.Join(tempDir, categoryName)
-		os.MkdirAll(catPath, 0755)
+		_ = os.MkdirAll(catPath, 0755)
 
 		// Should not panic
 		categories, _ := listCategories(tempDir)

@@ -69,7 +69,7 @@ func TestCacheOptimizer_Clear(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
 
 	// Populate cache
-	optimizer.GetFileCount(catPath)
+	_, _ = optimizer.GetFileCount(catPath)
 
 	// Clear cache
 	optimizer.Clear()

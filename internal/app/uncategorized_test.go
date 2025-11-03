@@ -24,12 +24,12 @@ func TestUncategorizedScenarios(t *testing.T) {
 				// Create categories with files
 				cat1 := filepath.Join(rootDir, "Shirts")
 				cat2 := filepath.Join(rootDir, "Pants")
-				os.MkdirAll(cat1, 0755)
-				os.MkdirAll(cat2, 0755)
+				_ = os.MkdirAll(cat1, 0755)
+				_ = os.MkdirAll(cat2, 0755)
 
 				// Add files to categories
-				os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
-				os.WriteFile(filepath.Join(cat2, "pants1.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(cat2, "pants1.jpg"), []byte("test"), 0644)
 				return nil
 			},
 			expectedOutput: []string{"Outfit Folders", "Shirts", "Pants"},
@@ -38,8 +38,8 @@ func TestUncategorizedScenarios(t *testing.T) {
 			name: "scenario 2 - no categories, only uncategorized",
 			setup: func(rootDir string) error {
 				// Create uncategorized files only
-				os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
-				os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
 				return nil
 			},
 			expectedOutput: []string{"Your Outfits", "2 outfits available"},
@@ -49,12 +49,12 @@ func TestUncategorizedScenarios(t *testing.T) {
 			setup: func(rootDir string) error {
 				// Create category with files
 				cat1 := filepath.Join(rootDir, "Shirts")
-				os.MkdirAll(cat1, 0755)
-				os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
+				_ = os.MkdirAll(cat1, 0755)
+				_ = os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
 
 				// Create uncategorized files
-				os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
-				os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
 				return nil
 			},
 			expectedOutput: []string{"Outfit Folders", "Shirts", "Other Outfits", "2 files"},
@@ -65,11 +65,11 @@ func TestUncategorizedScenarios(t *testing.T) {
 				// Create empty categories
 				cat1 := filepath.Join(rootDir, "Shirts")
 				cat2 := filepath.Join(rootDir, "Pants")
-				os.MkdirAll(cat1, 0755)
-				os.MkdirAll(cat2, 0755)
+				_ = os.MkdirAll(cat1, 0755)
+				_ = os.MkdirAll(cat2, 0755)
 
 				// Create uncategorized files
-				os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+				_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
 				return nil
 			},
 			expectedOutput: []string{"All categories are empty", "Your Outfits"},
@@ -79,7 +79,7 @@ func TestUncategorizedScenarios(t *testing.T) {
 			setup: func(rootDir string) error {
 				// Create empty categories
 				cat1 := filepath.Join(rootDir, "Shirts")
-				os.MkdirAll(cat1, 0755)
+				_ = os.MkdirAll(cat1, 0755)
 				return nil
 			},
 			expectedError: "all categories are empty and no uncategorized files found",
@@ -90,8 +90,8 @@ func TestUncategorizedScenarios(t *testing.T) {
 				// Create empty categories
 				cat1 := filepath.Join(rootDir, "Shirts")
 				cat2 := filepath.Join(rootDir, "Pants")
-				os.MkdirAll(cat1, 0755)
-				os.MkdirAll(cat2, 0755)
+				_ = os.MkdirAll(cat1, 0755)
+				_ = os.MkdirAll(cat2, 0755)
 				return nil
 			},
 			expectedError: "all categories are empty and no uncategorized files found",
@@ -104,12 +104,12 @@ func TestUncategorizedScenarios(t *testing.T) {
 			tempDir := t.TempDir()
 			configDir := filepath.Join(tempDir, "config")
 			t.Setenv("XDG_CONFIG_HOME", configDir)
-			os.MkdirAll(configDir, 0755)
-			config.Delete()
-			defer config.Delete()
+			_ = os.MkdirAll(configDir, 0755)
+			_ = config.Delete()
+			defer func() { _ = config.Delete() }()
 
 			rootDir := filepath.Join(tempDir, "outfits")
-			os.MkdirAll(rootDir, 0755)
+			_ = os.MkdirAll(rootDir, 0755)
 
 			// Setup test scenario
 			if err := tt.setup(rootDir); err != nil {
@@ -152,16 +152,16 @@ func TestUncategorizedRandomSelection(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete()
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	// Create uncategorized files
-	os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	var stdout bytes.Buffer
 	stdin := strings.NewReader("r\nk\n") // Random, then keep
@@ -185,16 +185,16 @@ func TestUncategorizedSelectedUnselected(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete()
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	// Create uncategorized files
-	os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(rootDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	// Pre-select one file
 	cache, _ := storage.NewManager(rootDir)
@@ -242,18 +242,18 @@ func TestManualSelection(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete()
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	// Create mixed scenario
 	cat1 := filepath.Join(rootDir, "Shirts")
-	os.MkdirAll(cat1, 0755)
-	os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(cat1, 0755)
+	_ = os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
 
 	// Pre-select shirt1.jpg to test "already selected" message
 	cache, _ := storage.NewManager(rootDir)
@@ -310,7 +310,7 @@ func TestDeleteFile(t *testing.T) {
 			fileExists:     false,
 		},
 		{
-			name:           "delete cancelled",
+			name:           "delete canceled",
 			input:          "r\nd\nno\n",
 			expectedOutput: []string{"Are you sure you want to permanently delete", "Okay, I won't delete it"},
 			fileExists:     true,
@@ -323,16 +323,16 @@ func TestDeleteFile(t *testing.T) {
 			tempDir := t.TempDir()
 			configDir := filepath.Join(tempDir, "config")
 			t.Setenv("XDG_CONFIG_HOME", configDir)
-			os.MkdirAll(configDir, 0755)
-			config.Delete()
-			defer config.Delete()
+			_ = os.MkdirAll(configDir, 0755)
+			_ = config.Delete()
+			defer func() { _ = config.Delete() }()
 
 			rootDir := filepath.Join(tempDir, "outfits")
-			os.MkdirAll(rootDir, 0755)
+			_ = os.MkdirAll(rootDir, 0755)
 
 			// Create test file
 			testFile := filepath.Join(rootDir, "test-outfit.jpg")
-			os.WriteFile(testFile, []byte("test"), 0644)
+			_ = os.WriteFile(testFile, []byte("test"), 0644)
 
 			var stdout bytes.Buffer
 			stdin := strings.NewReader(tt.input)
@@ -364,18 +364,18 @@ func TestMixedRandomSelection(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete()
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	// Create mixed scenario
 	cat1 := filepath.Join(rootDir, "Shirts")
-	os.MkdirAll(cat1, 0755)
-	os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(cat1, 0755)
+	_ = os.WriteFile(filepath.Join(cat1, "shirt1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(rootDir, "outfit1.jpg"), []byte("test"), 0644)
 
 	var stdout bytes.Buffer
 	stdin := strings.NewReader("r\nk\n") // Random across all, then keep
@@ -402,12 +402,12 @@ func TestCrossplatformPaths(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete()
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	// Create files with various names that might cause issues
 	testFiles := []string{
@@ -419,7 +419,7 @@ func TestCrossplatformPaths(t *testing.T) {
 	}
 
 	for _, fileName := range testFiles {
-		os.WriteFile(filepath.Join(rootDir, fileName), []byte("test"), 0644)
+		_ = os.WriteFile(filepath.Join(rootDir, fileName), []byte("test"), 0644)
 	}
 
 	var stdout bytes.Buffer

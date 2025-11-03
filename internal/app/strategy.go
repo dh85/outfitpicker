@@ -3,7 +3,6 @@ package app
 import (
 	"math/rand"
 	"sort"
-	"time"
 )
 
 // SelectionStrategy defines file selection algorithms
@@ -92,8 +91,4 @@ func (sf StrategyFactory) Create(name string) SelectionStrategy {
 	default:
 		return RandomStrategy{}
 	}
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }

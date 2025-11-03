@@ -16,9 +16,9 @@ func TestRandomAcrossAll_SkipAndContinue(t *testing.T) {
 
 	// Create test files
 	catDir := filepath.Join(tempDir, "casual")
-	os.MkdirAll(catDir, 0755)
-	os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catDir, 0755)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(tempDir)
 	categories := []string{catDir}
@@ -49,9 +49,9 @@ func TestRandomAcrossAll_SkipAllThenRetry(t *testing.T) {
 
 	// Create test files
 	catDir := filepath.Join(tempDir, "casual")
-	os.MkdirAll(catDir, 0755)
-	os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catDir, 0755)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(tempDir)
 	categories := []string{catDir}
@@ -85,9 +85,9 @@ func TestRandomAcrossAll_SkipAllThenDecline(t *testing.T) {
 
 	// Create test files
 	catDir := filepath.Join(tempDir, "casual")
-	os.MkdirAll(catDir, 0755)
-	os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catDir, 0755)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(tempDir)
 	categories := []string{catDir}
@@ -117,8 +117,8 @@ func TestCategoryManager_HandleRandomSelection_SkipAndContinue(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create test files
-	os.WriteFile(filepath.Join(tempDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(tempDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(filepath.Dir(tempDir))
 	stdout := &bytes.Buffer{}
@@ -152,8 +152,8 @@ func TestCategoryManager_HandleRandomSelection_SkipAllThenRetry(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create test files
-	os.WriteFile(filepath.Join(tempDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(tempDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(tempDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(filepath.Dir(tempDir))
 	stdout := &bytes.Buffer{}
@@ -191,10 +191,10 @@ func TestSkipTracking_SessionScoped(t *testing.T) {
 
 	// Create test files
 	catDir := filepath.Join(tempDir, "casual")
-	os.MkdirAll(catDir, 0755)
-	os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catDir, "outfit3.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catDir, 0755)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit3.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(tempDir)
 	categories := []string{catDir}
@@ -233,9 +233,9 @@ func TestCachePreservation_AfterSkipExhaustion(t *testing.T) {
 
 	// Create test files
 	catDir := filepath.Join(tempDir, "casual")
-	os.MkdirAll(catDir, 0755)
-	os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catDir, 0755)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catDir, "outfit2.jpg"), []byte("test"), 0644)
 
 	cache, _ := storage.NewManager(tempDir)
 	categories := []string{catDir}
@@ -244,7 +244,7 @@ func TestCachePreservation_AfterSkipExhaustion(t *testing.T) {
 	// First keep one outfit
 	input1 := "k\n"
 	pr1 := &prompter{r: bufio.NewReader(strings.NewReader(input1)), w: &bytes.Buffer{}}
-	randomAcrossAll(categories, uncategorized, cache, pr1, &bytes.Buffer{})
+	_ = randomAcrossAll(categories, uncategorized, cache, pr1, &bytes.Buffer{})
 
 	// Verify one outfit is cached
 	cached := cache.Load()
@@ -255,7 +255,7 @@ func TestCachePreservation_AfterSkipExhaustion(t *testing.T) {
 	// Skip remaining outfit and decline retry
 	input2 := "s\nn\n"
 	pr2 := &prompter{r: bufio.NewReader(strings.NewReader(input2)), w: &bytes.Buffer{}}
-	randomAcrossAll(categories, uncategorized, cache, pr2, &bytes.Buffer{})
+	_ = randomAcrossAll(categories, uncategorized, cache, pr2, &bytes.Buffer{})
 
 	// Verify cache is still preserved
 	cached = cache.Load()

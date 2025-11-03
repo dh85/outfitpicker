@@ -97,7 +97,7 @@ func TestExportManager_ImportInvalidJSON(t *testing.T) {
 	invalidPath := filepath.Join(tempDir, "invalid.json")
 
 	// Write invalid JSON
-	os.WriteFile(invalidPath, []byte("invalid json"), 0644)
+	_ = os.WriteFile(invalidPath, []byte("invalid json"), 0644)
 
 	_, err := em.Import(invalidPath)
 	if err == nil {

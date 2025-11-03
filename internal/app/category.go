@@ -334,33 +334,14 @@ func randomAcrossAll(categories, uncategorized []string, cache *storage.Manager,
 	skipped := make(map[string]bool)
 	defer cm.metrics.LogSession()
 
-	// Check if pool is empty from the start
 	if len(pool) == 0 {
-		fmt.Fprintln(stdout, "🎉 Amazing! You've picked all your outfits!")
-		for _, cat := range categories {
-			cache.Clear(cat)
-		}
-		if len(uncategorized) > 0 {
-			cache.Clear("UNCATEGORIZED")
-		}
-		fmt.Fprintln(stdout, "Starting fresh - you can pick from all your outfits again!")
-		return nil
+		return handleEmptyPool(categories, uncategorized, cache, stdout)
 	}
 
 	for {
-		// Filter out skipped files from pool
-		available := make([]FileEntry, 0, len(pool))
-		for _, file := range pool {
-			if !skipped[file.FilePath] {
-				available = append(available, file)
-			}
-		}
-
+		available := filterAvailableFiles(pool, skipped)
 		if len(available) == 0 {
-			fmt.Fprintln(stdout, "⚠️ You've skipped all available outfits in this session.")
-			fmt.Fprint(stdout, "Try again with the same outfits? [y/N]: ")
-			response, _ := pr.readLineLower()
-			if response == "y" {
+			if shouldRetrySkipped(pr, stdout) {
 				skipped = make(map[string]bool)
 				continue
 			}
@@ -368,15 +349,7 @@ func randomAcrossAll(categories, uncategorized []string, cache *storage.Manager,
 		}
 
 		file := available[rand.Intn(len(available))]
-		theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
-		uiInstance := ui.NewUI(stdout, theme)
-
-		if file.CategoryPath == "UNCATEGORIZED" {
-			fmt.Fprintf(stdout, "\n📄 From your other outfits\n")
-		} else {
-			fmt.Fprintf(stdout, "\n📂 From your %s collection\n", filepath.Base(file.CategoryPath))
-		}
-		uiInstance.RandomSelection(file.FileName)
+		displayFileSelection(file, stdout)
 
 		action, err := pr.readLineLowerDefault("k")
 		if err != nil && !errors.Is(err, io.EOF) {
@@ -384,27 +357,77 @@ func randomAcrossAll(categories, uncategorized []string, cache *storage.Manager,
 			continue
 		}
 
-		switch action {
-		case "k":
-			if err := cm.handleKeepAction(file); err != nil {
-				return err
-			}
-			completed, total, names := cm.getCompletionSummary(categories)
-			cm.displayCompletionSummaryFormatted(completed, total, names)
-			return nil
-		case "s":
-			uiInstance := cm.newUIInstance(true)
-			uiInstance.SkipAction(file.FileName)
-			skipped[file.FilePath] = true
-			cm.metrics.RecordSkip()
-		case "d":
-			return handleDeleteFile(file.FilePath, pr, stdout)
-		case "q":
-			fmt.Fprintln(stdout, "Exiting.")
-			return nil
-		default:
-			fmt.Fprintln(stdout, "invalid action. please try again.")
+		if shouldExit, err := handleUserAction(action, file, cm, categories, pr, stdout, skipped); shouldExit {
+			return err
 		}
+	}
+}
+
+func handleEmptyPool(categories, uncategorized []string, cache *storage.Manager, stdout io.Writer) error {
+	fmt.Fprintln(stdout, "🎉 Amazing! You've picked all your outfits!")
+	for _, cat := range categories {
+		cache.Clear(cat)
+	}
+	if len(uncategorized) > 0 {
+		cache.Clear("UNCATEGORIZED")
+	}
+	fmt.Fprintln(stdout, "Starting fresh - you can pick from all your outfits again!")
+	return nil
+}
+
+func filterAvailableFiles(pool []FileEntry, skipped map[string]bool) []FileEntry {
+	available := make([]FileEntry, 0, len(pool))
+	for _, file := range pool {
+		if !skipped[file.FilePath] {
+			available = append(available, file)
+		}
+	}
+	return available
+}
+
+func shouldRetrySkipped(pr *prompter, stdout io.Writer) bool {
+	fmt.Fprintln(stdout, "⚠️ You've skipped all available outfits in this session.")
+	fmt.Fprint(stdout, "Try again with the same outfits? [y/N]: ")
+	response, _ := pr.readLineLower()
+	return response == "y"
+}
+
+func displayFileSelection(file FileEntry, stdout io.Writer) {
+	theme := ui.Theme{UseColors: shouldUseColors(), UseEmojis: true, Compact: false}
+	uiInstance := ui.NewUI(stdout, theme)
+
+	if file.CategoryPath == "UNCATEGORIZED" {
+		fmt.Fprintf(stdout, "\n📄 From your other outfits\n")
+	} else {
+		fmt.Fprintf(stdout, "\n📂 From your %s collection\n", filepath.Base(file.CategoryPath))
+	}
+	uiInstance.RandomSelection(file.FileName)
+}
+
+func handleUserAction(action string, file FileEntry, cm *CategoryManager, categories []string, pr *prompter, stdout io.Writer, skipped map[string]bool) (bool, error) {
+	switch action {
+	case "k":
+		if err := cm.handleKeepAction(file); err != nil {
+			return true, err
+		}
+		completed, total, names := cm.getCompletionSummary(categories)
+		cm.displayCompletionSummaryFormatted(completed, total, names)
+		return true, nil
+	case "s":
+		uiInstance := cm.newUIInstance(true)
+		uiInstance.SkipAction(file.FileName)
+		skipped[file.FilePath] = true
+		cm.metrics.RecordSkip()
+		return false, nil
+	case "d":
+		err := handleDeleteFile(file.FilePath, pr, stdout)
+		return true, err
+	case "q":
+		fmt.Fprintln(stdout, "Exiting.")
+		return true, nil
+	default:
+		fmt.Fprintln(stdout, "invalid action. please try again.")
+		return false, nil
 	}
 }
 

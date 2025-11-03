@@ -88,10 +88,10 @@ func TestListCategories(t *testing.T) {
 	f := newTestFixture(t)
 
 	// Create test directories
-	os.MkdirAll(filepath.Join(f.root, "Category1"), 0755)
-	os.MkdirAll(filepath.Join(f.root, "category2"), 0755)
-	os.MkdirAll(filepath.Join(f.root, ".hidden"), 0755)
-	os.MkdirAll(filepath.Join(f.root, "Downloads"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.root, "Category1"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.root, "category2"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.root, ".hidden"), 0755)
+	_ = os.MkdirAll(filepath.Join(f.root, "Downloads"), 0755)
 	f.createFile(f.root, "file.txt")
 
 	cats, err := listCategories(f.root)
@@ -201,7 +201,7 @@ func testCategoryFileCount(t *testing.T) {
 	f := newTestFixture(t)
 	catPath := f.createCategory("test", "file1.txt", "file2.txt")
 	f.createFile(catPath, ".hidden")
-	os.MkdirAll(filepath.Join(catPath, "subdir"), 0755)
+	_ = os.MkdirAll(filepath.Join(catPath, "subdir"), 0755)
 
 	count, err := categoryFileCount(catPath)
 	f.assertNoError(err)

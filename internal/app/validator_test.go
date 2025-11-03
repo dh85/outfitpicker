@@ -22,7 +22,7 @@ func TestValidator_ValidateRootPath(t *testing.T) {
 		{"non-existent path", "/nonexistent", nil, true},
 		{"file not directory", "", func() string {
 			f := filepath.Join(tempDir, "file.txt")
-			os.WriteFile(f, []byte("test"), 0644)
+			_ = os.WriteFile(f, []byte("test"), 0644)
 			return f
 		}, true},
 	}

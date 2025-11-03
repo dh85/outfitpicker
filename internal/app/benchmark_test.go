@@ -17,7 +17,7 @@ func BenchmarkCategoryOperations(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		categories, _ := listCategories(f.TempDir)
 		for _, cat := range categories {
-			categoryFileCount(cat)
+			_, _ = categoryFileCount(cat)
 		}
 	}
 }
@@ -30,7 +30,7 @@ func BenchmarkRandomSelection(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		var stdout bytes.Buffer
 		pr := &prompter{r: bufio.NewReader(strings.NewReader("s\n"))}
-		runCategoryFlow(catPath, f.Cache, pr, &stdout)
+		_ = runCategoryFlow(catPath, f.Cache, pr, &stdout)
 	}
 }
 
