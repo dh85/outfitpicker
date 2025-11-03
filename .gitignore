@@ -99,10 +99,10 @@ config.json
 # comment out if you use go build cache intentionally
 *.syso
 # Build artifacts
-outfitpicker
-outfitpicker.exe
-outfitpicker-admin
-outfitpicker-admin.exe
+/outfitpicker
+/outfitpicker.exe
+/outfitpicker-admin
+/outfitpicker-admin.exe
 
 # Test coverage
 internal/app/coverage.out
