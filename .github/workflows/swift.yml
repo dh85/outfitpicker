@@ -13,6 +13,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Debug - List files
+      run: |
+        pwd
+        ls -la
+        ls -la Sources/
+        ls -la Sources/outfitpicker/
+    
     - name: Setup Swift
       uses: swift-actions/setup-swift@v2
       with:
