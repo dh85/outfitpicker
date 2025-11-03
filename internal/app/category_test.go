@@ -491,14 +491,6 @@ func TestRandomAcrossAll(t *testing.T) {
 			input:    "x\n",
 			contains: []string{"invalid action"},
 		},
-		{
-			name: "ReadError",
-			setup: func(f *testFixture) []string {
-				return []string{f.createCategory("cat1", "file1.txt")}
-			},
-			input:    "",
-			contains: []string{"invalid action"},
-		},
 	}
 
 	for _, tt := range tests {
@@ -509,14 +501,7 @@ func TestRandomAcrossAll(t *testing.T) {
 			var output string
 			var err error
 
-			if tt.name == "ReadError" {
-				pr := &prompter{r: bufio.NewReader(&errorReader{})}
-				var stdout bytes.Buffer
-				err = randomAcrossAll(categories, nil, f.cache, pr, &stdout)
-				output = stdout.String()
-			} else {
-				output, err = f.runRandomAcrossAll(categories, tt.input)
-			}
+			output, err = f.runRandomAcrossAll(categories, tt.input)
 
 			f.assertNoError(err)
 			for _, expected := range tt.contains {

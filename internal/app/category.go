@@ -334,6 +334,19 @@ func randomAcrossAll(categories, uncategorized []string, cache *storage.Manager,
 	skipped := make(map[string]bool)
 	defer cm.metrics.LogSession()
 
+	// Check if pool is empty from the start
+	if len(pool) == 0 {
+		fmt.Fprintln(stdout, "🎉 Amazing! You've picked all your outfits!")
+		for _, cat := range categories {
+			cache.Clear(cat)
+		}
+		if len(uncategorized) > 0 {
+			cache.Clear("UNCATEGORIZED")
+		}
+		fmt.Fprintln(stdout, "Starting fresh - you can pick from all your outfits again!")
+		return nil
+	}
+
 	for {
 		// Filter out skipped files from pool
 		available := make([]FileEntry, 0, len(pool))

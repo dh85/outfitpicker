@@ -2,6 +2,7 @@ package app
 
 import (
 	"log"
+	"os"
 	"time"
 )
 
@@ -42,6 +43,9 @@ func (m *Metrics) SessionDuration() time.Duration {
 
 // LogSession logs the session metrics
 func (m *Metrics) LogSession() {
-	log.Printf("Session: selected=%d, skipped=%d, duration=%v, categories=%d",
-		m.OutfitsSelected, m.OutfitsSkipped, m.SessionDuration(), m.CategoriesVisited)
+	// Only log in debug mode to avoid CI noise
+	if os.Getenv("DEBUG") != "" {
+		log.Printf("Session: selected=%d, skipped=%d, duration=%v, categories=%d",
+			m.OutfitsSelected, m.OutfitsSkipped, m.SessionDuration(), m.CategoriesVisited)
+	}
 }
