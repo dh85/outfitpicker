@@ -1,3 +1,33 @@
+# --- Swift build artifacts ---
+.build/
+*.xcodeproj/
+*.xcworkspace/
+DerivedData/
+*.dSYM.zip
+*.dSYM
+*.ipa
+*.app
+
+# --- Swift Package Manager ---
+Packages/
+.swiftpm/
+Package.resolved
+
+# --- Xcode ---
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+xcuserdata/
+
+# --- Swift test coverage ---
+*.profdata
+*.profraw
+coverage/
+
 # --- Go build artifacts ---
 bin/
 out/
@@ -19,7 +49,6 @@ full_coverage.html
 *.cov
 *.prof
 *.trace
-
 
 # Dependency directories (Go modules handle dependencies automatically)
 vendor/
@@ -80,3 +109,8 @@ internal/app/coverage.out
 
 # Demo/test data
 demo-improved/
+
+# CA Certificates (keep out of source control)
+.zscaler-certs/
+*.crt
+*.pem

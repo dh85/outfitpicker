@@ -1,0 +1,65 @@
+{
+    "name": "go-outfitpicker",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "dev",
+    "workspaceFolder": "/workspaces/outfitpicker",
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2": {
+            "username": "vscode",
+            "userUid": "1000",
+            "userGid": "1000",
+            "installZsh": false
+        },
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    "containerEnv": {
+        "GOLANGCI_LINT_VERSION": "v1.61.0",
+        "GORELEASER_VERSION": "v2.5.1",
+        "GOLANGCI_LINT_URL": "",
+        "GORELEASER_URL": ""
+    },
+    "postCreateCommand": [
+        "bash",
+        "-lc",
+        "set -euo pipefail; arch=$(uname -m); if [ \"$arch\" = x86_64 ]; then gcl_arch=amd64; gr_arch=x86_64; elif [ \"$arch\" = aarch64 ]; then gcl_arch=arm64; gr_arch=arm64; else gcl_arch=amd64; gr_arch=x86_64; fi; GCL_TAG=${GOLANGCI_LINT_VERSION:-v1.61.0}; GCL_VER=${GCL_TAG#v}; GR_TAG=${GORELEASER_VERSION:-v2.5.1}; mkdir -p \"$HOME/.local/bin\"; if ! command -v golangci-lint >/dev/null 2>&1; then echo Installing golangci-lint $GCL_TAG for $gcl_arch; tmp=$(mktemp -d); cd \"$tmp\"; curl -fsSL \"https://github.com/golangci/golangci-lint/releases/download/${GCL_TAG}/golangci-lint-${GCL_VER}-linux-${gcl_arch}.tar.gz\" | tar xz --strip-components=1; install -m 0755 golangci-lint \"$HOME/.local/bin/golangci-lint\"; cd /; rm -rf \"$tmp\"; fi; if ! command -v goreleaser >/dev/null 2>&1; then echo Installing goreleaser $GR_TAG for $gr_arch; tmp=$(mktemp -d); cd \"$tmp\"; curl -fsSL \"https://github.com/goreleaser/goreleaser/releases/download/${GR_TAG}/goreleaser_Linux_${gr_arch}.tar.gz\" | tar xz goreleaser; install -m 0755 goreleaser \"$HOME/.local/bin/goreleaser\"; cd /; rm -rf \"$tmp\"; fi; test -f go.mod && go mod tidy || true"
+    ],
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "golang.Go",
+                "ms-azuretools.vscode-docker",
+                "amazonwebservices.amazon-q-vscode"
+            ],
+            "settings": {
+                "go.formatTool": "gofmt",
+                "go.useLanguageServer": true,
+                "gopls": {
+                    "ui.semanticTokens": true,
+                    "analyses": {
+                        "unusedparams": true,
+                        "nilness": true,
+                        "shadow": true
+                    },
+                    "staticcheck": true
+                },
+                "go.lintTool": "golangci-lint",
+                "go.lintFlags": [
+                    "run",
+                    "--out-format",
+                    "colored-line-number"
+                ],
+                "editor.formatOnSave": true,
+                "[json]": {
+                    "editor.defaultFormatter": "vscode.json-language-features"
+                },
+                "[jsonc]": {
+                    "editor.defaultFormatter": "vscode.json-language-features"
+                },
+                "[go]": {
+                    "editor.defaultFormatter": "golang.go"
+                }
+            }
+        }
+    },
+    "remoteUser": "vscode"
+}

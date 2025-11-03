@@ -1,0 +1,11 @@
+services:
+  dev:
+    image: ${DEVCONTAINER_IMAGE:-mcr.microsoft.com/devcontainers/go:1.24-bookworm}
+    command: sleep infinity
+    volumes:
+      - ..:/workspaces/outfitpicker:cached
+      - vscode:/vscode
+      - ${HOME}:/host-home:cached
+    working_dir: /workspaces/outfitpicker
+volumes:
+  vscode:

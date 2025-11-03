@@ -1,11 +1,19 @@
 services:
   dev:
-    image: ${DEVCONTAINER_IMAGE:-mcr.microsoft.com/devcontainers/go:1.24-bookworm}
-    command: sleep infinity
+    image: swift:6.2-jammy
+    command: |
+      bash -c '
+      if [ -f "/workspaces/outfitpicker/.devcontainer/install-zscaler-cert.sh" ]; then
+        /workspaces/outfitpicker/.devcontainer/install-zscaler-cert.sh
+      fi
+      sleep infinity
+      '
     volumes:
       - ..:/workspaces/outfitpicker:cached
       - vscode:/vscode
       - ${HOME}:/host-home:cached
+      - /home/david/zscaler-certs:/tmp/zscaler-certs:ro
     working_dir: /workspaces/outfitpicker
 volumes:
   vscode:
+  
