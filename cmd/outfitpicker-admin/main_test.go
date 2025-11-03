@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -108,7 +109,14 @@ func TestResolveRootErrors(t *testing.T) {
 		{
 			name: "empty root in config",
 			setup: func() {
-				config.Save(&config.Config{Root: ""})
+				// Create a config with empty root - this should fail validation
+				// We need to bypass validation for this test
+				cfg := &config.Config{Root: ""}
+				// Manually save without validation for this test case
+				p, _ := config.Path()
+				os.MkdirAll(filepath.Dir(p), 0700)
+				data, _ := json.Marshal(cfg)
+				os.WriteFile(p, data, 0600)
 			},
 			expectedError: "config has empty root",
 		},
@@ -188,6 +196,10 @@ func TestConfigCommands(t *testing.T) {
 		{
 			name: "config set-root",
 			args: []string{"config", "set-root", filepath.Join(tempDir, "new-root")},
+			setup: func() {
+				// Create the directory that will be set as root
+				os.MkdirAll(filepath.Join(tempDir, "new-root"), 0755)
+			},
 		},
 		{
 			name: "config reset",
