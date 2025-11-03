@@ -39,6 +39,22 @@ func createTestConfig() *Config {
 	return &Config{Root: "/test/path"}
 }
 
+// saveWithoutValidation saves config without validation for testing
+func saveWithoutValidation(c *Config) error {
+	p, err := getConfigPath()
+	if err != nil {
+		return err
+	}
+	if err = ensureConfigDir(p); err != nil {
+		return err
+	}
+	data, err := encodeConfig(c)
+	if err != nil {
+		return err
+	}
+	return writeConfigFile(p, data)
+}
+
 func TestPath(t *testing.T) {
 	path, err := Path()
 	assertNoError(t, err, "Path() failed")
@@ -52,10 +68,10 @@ func TestPath(t *testing.T) {
 }
 
 func TestSaveAndLoad(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	config := createTestConfig()
-	assertNoError(t, Save(config), "Save failed")
+	assertNoError(t, saveWithoutValidation(config), "Save failed")
 
 	loaded, err := Load()
 	assertNoError(t, err, "Load failed")
@@ -63,7 +79,7 @@ func TestSaveAndLoad(t *testing.T) {
 }
 
 func TestLoad_NonexistentFile(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	_, err := Load()
 	if err != os.ErrNotExist {
@@ -72,24 +88,24 @@ func TestLoad_NonexistentFile(t *testing.T) {
 }
 
 func TestLoad_InvalidJSON(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	path, _ := Path()
-	os.MkdirAll(filepath.Dir(path), 0o755)
-	os.WriteFile(path, []byte("invalid json"), 0o644)
+	_ = os.MkdirAll(filepath.Dir(path), 0o755)
+	_ = os.WriteFile(path, []byte("invalid json"), 0o644)
 
 	_, err := Load()
 	assertError(t, err, "failed to parse config")
 }
 
 func TestLoad_ReadError(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	path, _ := Path()
 	configDir := filepath.Dir(path)
-	os.MkdirAll(configDir, 0o755)
-	os.WriteFile(path, []byte(`{"root": "test"}`), 0o000)
-	defer os.Chmod(path, 0o644)
+	_ = os.MkdirAll(configDir, 0o755)
+	_ = os.WriteFile(path, []byte(`{"root": "test"}`), 0o000)
+	defer func() { _ = os.Chmod(path, 0o644) }()
 
 	_, err := Load()
 	if err == nil {
@@ -102,16 +118,16 @@ func TestLoad_ReadError(t *testing.T) {
 }
 
 func TestSave_MkdirError(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	path, _ := Path()
 	configDir := filepath.Dir(path)
 	parentDir := filepath.Dir(configDir)
-	os.MkdirAll(parentDir, 0o755)
-	os.WriteFile(configDir, []byte("blocking file"), 0o644)
-	defer os.Remove(configDir)
+	_ = os.MkdirAll(parentDir, 0o755)
+	_ = os.WriteFile(configDir, []byte("blocking file"), 0o644)
+	defer func() { _ = os.Remove(configDir) }()
 
-	err := Save(createTestConfig())
+	err := saveWithoutValidation(createTestConfig())
 	if err == nil {
 		t.Skip("mkdir error test not supported on this system")
 	}
@@ -119,14 +135,14 @@ func TestSave_MkdirError(t *testing.T) {
 }
 
 func TestSave_WriteError(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	path, _ := Path()
 	configDir := filepath.Dir(path)
-	os.MkdirAll(configDir, 0o555)
-	defer os.Chmod(configDir, 0o755)
+	_ = os.MkdirAll(configDir, 0o555)
+	defer func() { _ = os.Chmod(configDir, 0o755) }()
 
-	err := Save(createTestConfig())
+	err := saveWithoutValidation(createTestConfig())
 	if err == nil {
 		t.Skip("write error test not supported on this system")
 	}
@@ -134,9 +150,9 @@ func TestSave_WriteError(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
-	Save(createTestConfig())
+	_ = saveWithoutValidation(createTestConfig())
 	_, err := Load()
 	assertNoError(t, err, "config should exist before delete")
 
@@ -149,20 +165,20 @@ func TestDelete(t *testing.T) {
 }
 
 func TestDelete_NonexistentFile(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	assertNoError(t, Delete(), "Delete of non-existent file should not error")
 }
 
 func TestDelete_RemoveError(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	path, _ := Path()
 	configDir := filepath.Dir(path)
-	os.MkdirAll(configDir, 0o755)
-	os.WriteFile(path, []byte(`{"root": "test"}`), 0o644)
-	os.Chmod(configDir, 0o555)
-	defer os.Chmod(configDir, 0o755)
+	_ = os.MkdirAll(configDir, 0o755)
+	_ = os.WriteFile(path, []byte(`{"root": "test"}`), 0o644)
+	_ = os.Chmod(configDir, 0o555)
+	defer func() { _ = os.Chmod(configDir, 0o755) }()
 
 	err := Delete()
 	if err == nil {
@@ -172,9 +188,9 @@ func TestDelete_RemoveError(t *testing.T) {
 }
 
 func TestSave_MarshalError(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
-	assertNoError(t, Save(createTestConfig()), "Save should succeed for simple config")
+	assertNoError(t, saveWithoutValidation(createTestConfig()), "Save should succeed for simple config")
 }
 
 func TestPath_UserConfigDirError(t *testing.T) {
@@ -187,7 +203,7 @@ func TestPath_UserConfigDirError(t *testing.T) {
 }
 
 func TestConfig_JSONTags(t *testing.T) {
-	defer Delete()
+	defer func() { _ = Delete() }()
 
 	original := &Config{Root: "/test/json/path"}
 

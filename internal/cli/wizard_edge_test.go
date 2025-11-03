@@ -177,8 +177,8 @@ func TestHandlePathPermissionErrors(t *testing.T) {
 
 	tempDir := t.TempDir()
 	restrictedDir := filepath.Join(tempDir, "restricted")
-	os.MkdirAll(restrictedDir, 0000)    // No permissions
-	defer os.Chmod(restrictedDir, 0755) // Restore for cleanup
+	_ = os.MkdirAll(restrictedDir, 0000)                 // No permissions
+	defer func() { _ = os.Chmod(restrictedDir, 0755) }() // Restore for cleanup
 
 	// Test that wizard handles permission errors gracefully
 	stdin := strings.NewReader(restrictedDir + "\nn\n" + tempDir + "\ny\n")

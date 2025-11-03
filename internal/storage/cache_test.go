@@ -48,7 +48,7 @@ func TestNewManager_EmptyRoot(t *testing.T) {
 func TestNewManager_RootIsFile(t *testing.T) {
 	root := t.TempDir()
 	filePath := filepath.Join(root, "notadir")
-	os.WriteFile(filePath, []byte("test"), 0o644)
+	_ = os.WriteFile(filePath, []byte("test"), 0o644)
 	m := createManager(t, filePath)
 	if m.Path() == filepath.Join(filePath, cacheFileName) {
 		t.Fatal("should not use file path as directory")
@@ -63,7 +63,7 @@ func TestManager_LoadNonexistentFile(t *testing.T) {
 
 func TestManager_LoadInvalidJSON(t *testing.T) {
 	m := createManager(t, t.TempDir())
-	os.WriteFile(m.Path(), []byte("invalid json"), 0o644)
+	_ = os.WriteFile(m.Path(), []byte("invalid json"), 0o644)
 	cm := m.Load()
 	assertEmptyMap(t, cm, "expected empty map for invalid JSON")
 }
@@ -88,8 +88,8 @@ func TestManager_SaveInvalidData(t *testing.T) {
 func TestManager_SaveToReadOnlyDir(t *testing.T) {
 	root := t.TempDir()
 	readOnlyDir := filepath.Join(root, "readonly")
-	os.MkdirAll(readOnlyDir, 0o555)
-	defer os.Chmod(readOnlyDir, 0o755)
+	_ = os.MkdirAll(readOnlyDir, 0o555)
+	defer func() { _ = os.Chmod(readOnlyDir, 0o755) }()
 	m := &Manager{cacheFile: filepath.Join(readOnlyDir, "cache.json")}
 	m.Save(Map{"test": []string{"file"}}) // Should not panic
 }
@@ -98,7 +98,7 @@ func TestManager_AddAndClear(t *testing.T) {
 	root := t.TempDir()
 	m := createManager(t, root)
 	cat := filepath.Join(root, "Beach")
-	os.MkdirAll(cat, 0o755)
+	_ = os.MkdirAll(cat, 0o755)
 
 	m.Add("a.avatar", cat)
 	m.Add("a.avatar", cat) // duplicate

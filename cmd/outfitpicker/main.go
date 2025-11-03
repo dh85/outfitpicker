@@ -72,9 +72,9 @@ func newRootCmd() *cobra.Command {
 
 				// Create i18n instance for quick mode
 				locale := getLocale(language)
-				i18n := app.NewI18n(locale)
+				quickI18n := app.NewI18n(locale)
 
-				return app.QuickModeRandomWithI18n(root, category, cmd.OutOrStdout(), i18n)
+				return app.QuickModeRandomWithI18n(root, category, cmd.OutOrStdout(), quickI18n)
 			}
 
 			var root string
@@ -98,9 +98,9 @@ func newRootCmd() *cobra.Command {
 
 			// Create i18n instance
 			locale := getLocale(language)
-			i18n := app.NewI18n(locale)
+			runI18n := app.NewI18n(locale)
 
-			return app.RunWithI18n(root, category, cmd.InOrStdin(), cmd.OutOrStdout(), i18n)
+			return app.RunWithI18n(root, category, cmd.InOrStdin(), cmd.OutOrStdout(), runI18n)
 		},
 	}
 

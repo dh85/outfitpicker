@@ -37,7 +37,7 @@ func assertStringContains(t *testing.T, haystack, needle, msg string) {
 func runWizardTest(input string) (string, string, error) {
 	stdin := strings.NewReader(input)
 	var stdout bytes.Buffer
-	defer config.Delete()
+	defer func() { _ = config.Delete() }()
 	result, err := FirstRunWizard(stdin, &stdout)
 	return result, stdout.String(), err
 }
@@ -118,7 +118,7 @@ func TestEnsureCacheAtRoot(t *testing.T) {
 func TestEnsureCacheAtRoot_ExistingCache(t *testing.T) {
 	root := t.TempDir()
 	cacheFile := filepath.Join(root, "OutfitSelectorCache.json")
-	os.WriteFile(cacheFile, []byte("{}"), 0o644)
+	_ = os.WriteFile(cacheFile, []byte("{}"), 0o644)
 
 	var buf bytes.Buffer
 	err := EnsureCacheAtRoot(root, &buf)
@@ -152,7 +152,7 @@ func TestFirstRunWizard_ValidExistingDirectory(t *testing.T) {
 func TestFirstRunWizard_PathIsFile(t *testing.T) {
 	root := t.TempDir()
 	filePath := filepath.Join(root, "notadir")
-	os.WriteFile(filePath, []byte("test"), 0o644)
+	_ = os.WriteFile(filePath, []byte("test"), 0o644)
 
 	validPath := t.TempDir()
 	result, output, err := runWizardTest(fmt.Sprintf("%s\n%s\n", filePath, validPath))

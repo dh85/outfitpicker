@@ -12,7 +12,7 @@ func TestLoadCorruptedCache(t *testing.T) {
 	manager, _ := NewManager(tempDir)
 
 	// Create corrupted cache file
-	os.WriteFile(manager.Path(), []byte("invalid json {"), 0644)
+	_ = os.WriteFile(manager.Path(), []byte("invalid json {"), 0644)
 
 	// Should return empty map for corrupted cache
 	result := manager.Load()

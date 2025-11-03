@@ -15,8 +15,8 @@ func TestAsyncOperations_LoadCategoriesAsync(t *testing.T) {
 
 	// Create test structure
 	tempDir := t.TempDir()
-	os.MkdirAll(filepath.Join(tempDir, "Category1"), 0755)
-	os.MkdirAll(filepath.Join(tempDir, "Category2"), 0755)
+	_ = os.MkdirAll(filepath.Join(tempDir, "Category1"), 0755)
+	_ = os.MkdirAll(filepath.Join(tempDir, "Category2"), 0755)
 
 	// Test async loading
 	done := make(chan bool)
@@ -82,8 +82,8 @@ func TestAsyncOperations_PreloadCache(t *testing.T) {
 
 	// Create categories with files
 	for _, cat := range categories {
-		os.MkdirAll(cat, 0755)
-		os.WriteFile(filepath.Join(cat, "test.jpg"), []byte("test"), 0644)
+		_ = os.MkdirAll(cat, 0755)
+		_ = os.WriteFile(filepath.Join(cat, "test.jpg"), []byte("test"), 0644)
 	}
 
 	optimizer := NewCacheOptimizer(time.Minute)

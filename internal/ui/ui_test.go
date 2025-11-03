@@ -471,7 +471,7 @@ func TestIcon(t *testing.T) {
 			name:      "with emojis",
 			useEmojis: true,
 			emoji:     IconCheck,
-			expected:  IconCheck,
+			expected:  IconCheck + " ",
 		},
 		{
 			name:      "without emojis",

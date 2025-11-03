@@ -59,8 +59,12 @@ func TestCorruptedConfigFile(t *testing.T) {
 
 	// Create corrupted config file
 	configPath := filepath.Join(tempDir, "outfitpicker", "config.json")
-	os.MkdirAll(filepath.Dir(configPath), 0755)
-	os.WriteFile(configPath, []byte("invalid json {"), 0644)
+	if err := os.MkdirAll(filepath.Dir(configPath), 0755); err != nil {
+		t.Fatalf("failed to create config dir: %v", err)
+	}
+	if err := os.WriteFile(configPath, []byte("invalid json {"), 0644); err != nil {
+		t.Fatalf("failed to write corrupted config: %v", err)
+	}
 
 	_, err := Load()
 	if err == nil {
@@ -76,12 +80,18 @@ func TestReadOnlyConfigDir(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "outfitpicker")
 	configFile := filepath.Join(configDir, "config.json")
-	os.MkdirAll(configDir, 0755)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		t.Fatalf("failed to create config dir: %v", err)
+	}
 
 	// Create a file where config should go, then make it read-only
-	os.WriteFile(configFile, []byte("existing"), 0644)
-	os.Chmod(configFile, 0444)
-	defer os.Chmod(configFile, 0644) // Restore for cleanup
+	if err := os.WriteFile(configFile, []byte("existing"), 0644); err != nil {
+		t.Fatalf("failed to write config file: %v", err)
+	}
+	if err := os.Chmod(configFile, 0444); err != nil {
+		t.Fatalf("failed to chmod config file: %v", err)
+	}
+	defer func() { _ = os.Chmod(configFile, 0644) }() // Restore for cleanup
 
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
@@ -133,8 +143,11 @@ func TestLargeConfigFile(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
-	// Create config with very long root path
-	longRoot := strings.Repeat("a", 1000)
+	// Create config with very long root path that exists
+	longRoot := filepath.Join(tempDir, strings.Repeat("a", 100))
+	if err := os.MkdirAll(longRoot, 0755); err != nil {
+		t.Fatalf("failed to create longRoot: %v", err)
+	}
 	config := &Config{Root: longRoot}
 
 	err := Save(config)
@@ -156,16 +169,26 @@ func TestConcurrentAccess(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
+	// Create test directories for validation
+	test1Dir := filepath.Join(tempDir, "test1")
+	test2Dir := filepath.Join(tempDir, "test2")
+	if err := os.MkdirAll(test1Dir, 0755); err != nil {
+		t.Fatalf("failed to create test1Dir: %v", err)
+	}
+	if err := os.MkdirAll(test2Dir, 0755); err != nil {
+		t.Fatalf("failed to create test2Dir: %v", err)
+	}
+
 	// Test concurrent saves
 	done := make(chan bool, 2)
 
 	go func() {
-		Save(&Config{Root: "/test1"})
+		_ = Save(&Config{Root: test1Dir})
 		done <- true
 	}()
 
 	go func() {
-		Save(&Config{Root: "/test2"})
+		_ = Save(&Config{Root: test2Dir})
 		done <- true
 	}()
 

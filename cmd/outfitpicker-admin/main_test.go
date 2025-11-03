@@ -23,7 +23,7 @@ func TestNewRootCmd(t *testing.T) {
 func TestCacheShowCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	defer config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -39,7 +39,7 @@ func TestCacheShowCommand(t *testing.T) {
 func TestCacheClearCommand(t *testing.T) {
 	tempDir := t.TempDir()
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
-	defer config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -71,15 +71,15 @@ func TestResolveRootFromConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
+	_ = os.MkdirAll(configDir, 0755)
 
 	// Ensure completely clean state
-	config.Delete()
-	defer config.Delete()
+	_ = config.Delete()
+	defer func() { _ = config.Delete() }()
 
 	// Create unique test root path
 	testRoot := filepath.Join(tempDir, "unique-test-root")
-	os.MkdirAll(testRoot, 0755)
+	_ = os.MkdirAll(testRoot, 0755)
 
 	// Save config
 	err := config.Save(&config.Config{Root: testRoot})
@@ -114,9 +114,9 @@ func TestResolveRootErrors(t *testing.T) {
 				cfg := &config.Config{Root: ""}
 				// Manually save without validation for this test case
 				p, _ := config.Path()
-				os.MkdirAll(filepath.Dir(p), 0700)
+				_ = os.MkdirAll(filepath.Dir(p), 0700)
 				data, _ := json.Marshal(cfg)
-				os.WriteFile(p, data, 0600)
+				_ = os.WriteFile(p, data, 0600)
 			},
 			expectedError: "config has empty root",
 		},
@@ -125,11 +125,11 @@ func TestResolveRootErrors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Ensure clean state
-			config.Delete()
+			_ = config.Delete()
 			if tt.setup != nil {
 				tt.setup()
 			}
-			defer config.Delete()
+			defer func() { _ = config.Delete() }()
 
 			_, err := resolveRoot("")
 			if err == nil {
@@ -189,8 +189,8 @@ func TestConfigCommands(t *testing.T) {
 			args: []string{"config", "show"},
 			setup: func() {
 				testRoot := filepath.Join(tempDir, "test-config")
-				os.MkdirAll(testRoot, 0755)
-				config.Save(&config.Config{Root: testRoot})
+				_ = os.MkdirAll(testRoot, 0755)
+				_ = config.Save(&config.Config{Root: testRoot})
 			},
 		},
 		{
@@ -198,7 +198,7 @@ func TestConfigCommands(t *testing.T) {
 			args: []string{"config", "set-root", filepath.Join(tempDir, "new-root")},
 			setup: func() {
 				// Create the directory that will be set as root
-				os.MkdirAll(filepath.Join(tempDir, "new-root"), 0755)
+				_ = os.MkdirAll(filepath.Join(tempDir, "new-root"), 0755)
 			},
 		},
 		{
@@ -206,8 +206,8 @@ func TestConfigCommands(t *testing.T) {
 			args: []string{"config", "reset"},
 			setup: func() {
 				testRoot := filepath.Join(tempDir, "test-reset")
-				os.MkdirAll(testRoot, 0755)
-				config.Save(&config.Config{Root: testRoot})
+				_ = os.MkdirAll(testRoot, 0755)
+				_ = config.Save(&config.Config{Root: testRoot})
 			},
 		},
 	}
@@ -218,7 +218,7 @@ func TestConfigCommands(t *testing.T) {
 				tt.setup()
 			}
 			// Ensure cleanup after each subtest
-			defer config.Delete()
+			defer func() { _ = config.Delete() }()
 
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
@@ -241,7 +241,7 @@ func TestCacheShowEmpty(t *testing.T) {
 
 	// Create empty root
 	rootDir := filepath.Join(tempDir, "root")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -263,13 +263,13 @@ func TestCacheShowWithData(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete() // Ensure clean state
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete() // Ensure clean state
+	defer func() { _ = config.Delete() }()
 
 	// Create root with cache data
 	rootDir := filepath.Join(tempDir, "root")
-	os.MkdirAll(rootDir, 0755) // Ensure root directory exists
+	_ = os.MkdirAll(rootDir, 0755) // Ensure root directory exists
 
 	mgr, err := storage.NewManager(rootDir)
 	if err != nil {
@@ -342,7 +342,7 @@ func TestCacheClearAllEmpty(t *testing.T) {
 
 	// Create empty root
 	rootDir := filepath.Join(tempDir, "root")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -414,7 +414,7 @@ func TestCacheClearNoArgs(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
 	rootDir := filepath.Join(tempDir, "root")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	cmd := newRootCmd()
 	var stderr bytes.Buffer
@@ -436,7 +436,7 @@ func TestCacheClearEmptyCache(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", tempDir)
 
 	rootDir := filepath.Join(tempDir, "root")
-	os.MkdirAll(rootDir, 0755)
+	_ = os.MkdirAll(rootDir, 0755)
 
 	cmd := newRootCmd()
 	var stderr bytes.Buffer

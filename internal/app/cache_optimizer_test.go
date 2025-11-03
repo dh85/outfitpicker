@@ -13,9 +13,9 @@ func TestCacheOptimizer_GetFileCount(t *testing.T) {
 
 	// Create test category
 	catPath := filepath.Join(tempDir, "test")
-	os.MkdirAll(catPath, 0755)
-	os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
-	os.WriteFile(filepath.Join(catPath, "file2.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catPath, 0755)
+	_ = os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catPath, "file2.jpg"), []byte("test"), 0644)
 
 	// First call should compute
 	count1, err := optimizer.GetFileCount(catPath)
@@ -41,8 +41,8 @@ func TestCacheOptimizer_TTL(t *testing.T) {
 	tempDir := t.TempDir()
 
 	catPath := filepath.Join(tempDir, "test")
-	os.MkdirAll(catPath, 0755)
-	os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catPath, 0755)
+	_ = os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
 
 	// Get initial count
 	count1, _ := optimizer.GetFileCount(catPath)
@@ -51,7 +51,7 @@ func TestCacheOptimizer_TTL(t *testing.T) {
 	time.Sleep(2 * time.Millisecond)
 
 	// Add another file
-	os.WriteFile(filepath.Join(catPath, "file2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catPath, "file2.jpg"), []byte("test"), 0644)
 
 	// Should recompute due to expired TTL
 	count2, _ := optimizer.GetFileCount(catPath)
@@ -65,8 +65,8 @@ func TestCacheOptimizer_Clear(t *testing.T) {
 	tempDir := t.TempDir()
 
 	catPath := filepath.Join(tempDir, "test")
-	os.MkdirAll(catPath, 0755)
-	os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catPath, 0755)
+	_ = os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
 
 	// Populate cache
 	optimizer.GetFileCount(catPath)
@@ -75,7 +75,7 @@ func TestCacheOptimizer_Clear(t *testing.T) {
 	optimizer.Clear()
 
 	// Add file and check - should recompute
-	os.WriteFile(filepath.Join(catPath, "file2.jpg"), []byte("test"), 0644)
+	_ = os.WriteFile(filepath.Join(catPath, "file2.jpg"), []byte("test"), 0644)
 	count, _ := optimizer.GetFileCount(catPath)
 	if count != 2 {
 		t.Error("cache clear not working correctly")
@@ -87,8 +87,8 @@ func TestCacheOptimizer_ConcurrentAccess(t *testing.T) {
 	tempDir := t.TempDir()
 
 	catPath := filepath.Join(tempDir, "test")
-	os.MkdirAll(catPath, 0755)
-	os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(catPath, 0755)
+	_ = os.WriteFile(filepath.Join(catPath, "file1.jpg"), []byte("test"), 0644)
 
 	// Test concurrent access
 	done := make(chan bool, 10)

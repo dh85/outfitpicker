@@ -53,7 +53,7 @@ func TestConfigCommands(t *testing.T) {
 			// Set temp config dir
 			t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 			// Ensure cleanup after each subtest
-			defer config.Delete()
+			defer func() { _ = config.Delete() }()
 
 			cmd := newRootCmd()
 			var stdout bytes.Buffer
@@ -187,12 +187,12 @@ func TestRootResolution(t *testing.T) {
 	t.Run("positional root arg", func(t *testing.T) {
 		tempDir := t.TempDir()
 		t.Setenv("XDG_CONFIG_HOME", tempDir)
-		config.Delete()
-		defer config.Delete()
+		_ = config.Delete()
+		defer func() { _ = config.Delete() }()
 
 		rootDir := filepath.Join(tempDir, "outfits")
-		os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-		os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+		_ = os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+		_ = os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 
 		cmd := newRootCmd()
 		var stdout bytes.Buffer
@@ -210,12 +210,12 @@ func TestRootResolution(t *testing.T) {
 	t.Run("root flag", func(t *testing.T) {
 		tempDir := t.TempDir()
 		t.Setenv("XDG_CONFIG_HOME", tempDir)
-		config.Delete()
-		defer config.Delete()
+		_ = config.Delete()
+		defer func() { _ = config.Delete() }()
 
 		rootDir := filepath.Join(tempDir, "outfits")
-		os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-		os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+		_ = os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+		_ = os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 
 		cmd := newRootCmd()
 		var stdout bytes.Buffer
@@ -233,12 +233,12 @@ func TestRootResolution(t *testing.T) {
 	t.Run("config root", func(t *testing.T) {
 		tempDir := t.TempDir()
 		t.Setenv("XDG_CONFIG_HOME", tempDir)
-		config.Delete()
-		defer config.Delete()
+		_ = config.Delete()
+		defer func() { _ = config.Delete() }()
 
 		rootDir := filepath.Join(tempDir, "outfits")
-		os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-		os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+		_ = os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+		_ = os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 
 		// Save config
 		err := config.Save(&config.Config{Root: rootDir})
@@ -282,14 +282,14 @@ func TestConfigFromSaved(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete() // Ensure clean state
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete() // Ensure clean state
+	defer func() { _ = config.Delete() }()
 
 	// Create test structure
 	rootDir := filepath.Join(tempDir, "outfits")
-	os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
-	os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
+	_ = os.MkdirAll(filepath.Join(rootDir, "TestCat"), 0755)
+	_ = os.WriteFile(filepath.Join(rootDir, "TestCat", "test.jpg"), []byte("test"), 0644)
 
 	// Save config
 	err := config.Save(&config.Config{Root: rootDir})
@@ -318,13 +318,13 @@ func TestConfigShowWithExistingConfig(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete() // Ensure clean state
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete() // Ensure clean state
+	defer func() { _ = config.Delete() }()
 
 	// Save config first
 	testRoot := filepath.Join(tempDir, "test-root")
-	os.MkdirAll(testRoot, 0755)
+	_ = os.MkdirAll(testRoot, 0755)
 	err := config.Save(&config.Config{Root: testRoot})
 	if err != nil {
 		t.Fatalf("failed to save config: %v", err)
@@ -350,9 +350,9 @@ func TestConfigShowNonExistent(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete() // Ensure clean state
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete() // Ensure clean state
+	defer func() { _ = config.Delete() }()
 
 	cmd := newRootCmd()
 	var stdout bytes.Buffer
@@ -375,13 +375,13 @@ func TestConfigReset(t *testing.T) {
 	tempDir := t.TempDir()
 	configDir := filepath.Join(tempDir, "config")
 	t.Setenv("XDG_CONFIG_HOME", configDir)
-	os.MkdirAll(configDir, 0755)
-	config.Delete() // Ensure clean state
-	defer config.Delete()
+	_ = os.MkdirAll(configDir, 0755)
+	_ = config.Delete() // Ensure clean state
+	defer func() { _ = config.Delete() }()
 
 	// Save config first
 	testRoot := filepath.Join(tempDir, "test-config-root")
-	os.MkdirAll(testRoot, 0755)
+	_ = os.MkdirAll(testRoot, 0755)
 	err := config.Save(&config.Config{Root: testRoot})
 	if err != nil {
 		t.Fatalf("failed to save config: %v", err)
