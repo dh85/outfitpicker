@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"os"
 	"path/filepath"
+	"testing"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
 )
@@ -14,6 +16,22 @@ const (
 
 func cliTestCategoryPath(name string) string {
 	return filepath.Join(cliTestOutfitRoot, name)
+}
+
+func cliTestHomeTempDir(t *testing.T, pattern string) string {
+	t.Helper()
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("UserHomeDir() error = %v", err)
+	}
+	path, err := os.MkdirTemp(homeDir, pattern)
+	if err != nil {
+		t.Fatalf("MkdirTemp(%q) error = %v", homeDir, err)
+	}
+	t.Cleanup(func() {
+		_ = os.RemoveAll(path)
+	})
+	return path
 }
 
 type stubCategoryInfoResult struct {

@@ -393,17 +393,7 @@ func TestCreateApplicationFromConfiguration_ReturnsBuildAndSaveErrors(t *testing
 func TestBootstrapApplication_FirstTimeSetupCreatesApplication(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
 	deps := newProductionStyleRuntimeDependencies()
-	workspaceDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Getwd() error = %v", err)
-	}
-	outfitPath, err := os.MkdirTemp(workspaceDir, "bootstrap-test-")
-	if err != nil {
-		t.Fatalf("MkdirTemp() error = %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.RemoveAll(outfitPath)
-	})
+	outfitPath := cliTestHomeTempDir(t, "outfitpicker-bootstrap-test-")
 
 	withBootstrapPromptResponses(t, outfitPath, "")
 
@@ -441,17 +431,7 @@ func TestBootstrapApplication_RecoveryFlowReplacesInvalidConfig(t *testing.T) {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
 
-	workspaceDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Getwd() error = %v", err)
-	}
-	outfitPath, err := os.MkdirTemp(workspaceDir, "bootstrap-recovery-")
-	if err != nil {
-		t.Fatalf("MkdirTemp() error = %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.RemoveAll(outfitPath)
-	})
+	outfitPath := cliTestHomeTempDir(t, "outfitpicker-bootstrap-recovery-")
 
 	withBootstrapPromptResponses(t, "y", outfitPath, "")
 

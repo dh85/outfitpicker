@@ -221,17 +221,7 @@ func TestIntegration_FactoryResetDeletesConfigAndCache(t *testing.T) {
 
 func integrationWardrobeRoot(t *testing.T, categories map[string][]string) string {
 	t.Helper()
-	workspaceDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Getwd() error = %v", err)
-	}
-	root, err := os.MkdirTemp(workspaceDir, "integration-wardrobe-")
-	if err != nil {
-		t.Fatalf("MkdirTemp() error = %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.RemoveAll(root)
-	})
+	root := cliTestHomeTempDir(t, "outfitpicker-integration-wardrobe-")
 
 	for category, files := range categories {
 		categoryDir := filepath.Join(root, category)
@@ -251,18 +241,7 @@ func integrationWardrobeRoot(t *testing.T, categories map[string][]string) strin
 
 func integrationConfigHome(t *testing.T) string {
 	t.Helper()
-	workspaceDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Getwd() error = %v", err)
-	}
-	path, err := os.MkdirTemp(workspaceDir, "integration-config-")
-	if err != nil {
-		t.Fatalf("MkdirTemp() error = %v", err)
-	}
-	t.Cleanup(func() {
-		_ = os.RemoveAll(path)
-	})
-	return path
+	return cliTestHomeTempDir(t, "outfitpicker-integration-config-")
 }
 
 func integrationConfigPath(t *testing.T) string {
