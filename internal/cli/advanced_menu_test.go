@@ -3,6 +3,7 @@ package cli
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
@@ -179,6 +180,22 @@ func TestAdvancedMenu_dispatchChoice_UnhandledChoiceExits(t *testing.T) {
 }
 
 func TestAdvancedMenu_handleResetAll(t *testing.T) {
+	t.Run("shows affected preview", func(t *testing.T) {
+		picker := newAdvancedMenuTestPicker()
+		jackets := categoryRef("Jackets")
+		shoes := categoryRef("Shoes")
+		picker.stubRuntime.wardrobe.allOutfitStates = map[string]entities.CategoryOutfitState{
+			"Jackets": entities.NewCategoryOutfitState(jackets, advancedMenuOutfits(jackets, "one.avatar", "two.avatar", "three.avatar", "four.avatar", "five.avatar"), nil, advancedMenuOutfits(jackets, "one.avatar", "two.avatar", "three.avatar", "four.avatar", "five.avatar")),
+			"Shoes":   entities.NewCategoryOutfitState(shoes, advancedMenuOutfits(shoes, "boots.avatar", "loafers.avatar"), nil, advancedMenuOutfits(shoes, "boots.avatar", "loafers.avatar")),
+		}
+		var output strings.Builder
+		menu := AdvancedMenu{outfitService: newStubOutfitService(picker.stubRuntime), console: TerminalConsole{stdin: strings.NewReader("n\n"), stdout: &output}}
+
+		assertMenuDestination(t, menu.handleResetAll(), menuDestinationAdvanced)
+		assertOutputContains(t, output.String(), "This will reset worn status for all categories", "Affected:", "Jackets", "5 worn", "Shoes", "2 worn", "Reset all worn outfits? [y/N]")
+		assertNoResetAllRequested(t, picker.stubRuntime)
+	})
+
 	t.Run("cancelled", func(t *testing.T) {
 		picker := newAdvancedMenuTestPicker()
 		assertMenuTransitionWithPrompts(t, menuDestinationAdvanced, func() menuTransition {
@@ -259,13 +276,14 @@ func TestAdvancedMenu_handlePathChange(t *testing.T) {
 		assertCurrentConfigRoot(t, picker, cliTestOutfitRoot)
 	})
 
-	t.Run("cancelled on confirmation", func(t *testing.T) {
+	t.Run("cancelled on confirmation with path preview", func(t *testing.T) {
 		picker := newAdvancedMenuTestPicker(withConfig(mustAdvancedMenuConfig(t, cliTestOutfitRoot, "en", nil)))
-		restore := withPromptResponses(t, cliTestNewOutfitRoot, "b")
-		defer restore()
+		var output strings.Builder
+		menu := AdvancedMenu{outfitService: newStubOutfitService(picker.stubRuntime), console: TerminalConsole{stdin: strings.NewReader(cliTestNewOutfitRoot + "\nn\n"), stdout: &output}}
 
-		assertMenuDestination(t, AdvancedMenu{outfitService: newStubOutfitService(picker.stubRuntime)}.handlePathChange(), menuDestinationAdvanced)
+		assertMenuDestination(t, menu.handlePathChange(), menuDestinationAdvanced)
 		assertCurrentConfigRoot(t, picker, cliTestOutfitRoot)
+		assertOutputContains(t, output.String(), "Changing wardrobe path will reset worn outfit history", "Current: "+cliTestOutfitRoot, "New:     "+cliTestNewOutfitRoot, "Continue? [y/N]")
 	})
 
 	t.Run("update error", func(t *testing.T) {
@@ -714,4 +732,12 @@ func assertCurrentExcluded(t *testing.T, picker *advancedMenuTestPicker, want ma
 
 func categoryRef(name string) entities.CategoryReference {
 	return entities.NewCategoryReference(name, cliTestCategoryPath(name))
+}
+
+func advancedMenuOutfits(category entities.CategoryReference, names ...string) []entities.OutfitReference {
+	outfits := make([]entities.OutfitReference, 0, len(names))
+	for _, name := range names {
+		outfits = append(outfits, entities.NewOutfitReference(name, category))
+	}
+	return outfits
 }

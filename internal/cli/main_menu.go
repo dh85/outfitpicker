@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-	"strings"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
 	domainerrors "github.com/dh85/outfitpicker/internal/domain/errors"
@@ -22,7 +21,10 @@ func (m MainMenu) terminal() Console { return consoleOrDefault(m.console) }
 
 func (m MainMenu) Show() menuTransition {
 	m.renderer.ShowTitle()
-	m.showOutfitDirectory()
+	rootPath := m.outfitDirectory()
+	if rootPath != "" {
+		m.renderer.ShowOutfitDirectory(rootPath)
+	}
 
 	categoryInfos, err := m.outfitService.GetCategoryInfo()
 	if err != nil {
@@ -41,6 +43,10 @@ func (m MainMenu) Show() menuTransition {
 		return exitMenuTransition()
 	}
 
+	if rootPath != "" {
+		m.renderer.ShowWardrobeSummary(rootPath, categoryInfos, m.outfitService)
+	}
+
 	if len(availableCategories) > 0 {
 		m.renderer.ShowAvailableCategories(availableCategories, m.outfitService)
 	}
@@ -49,14 +55,15 @@ func (m MainMenu) Show() menuTransition {
 	m.renderer.ShowMenuOptions()
 
 	input := m.terminal().Prompt("Choose a number or letter: ")
-	return m.handleChoice(strings.ToLower(strings.TrimSpace(input)), availableCategories)
+	return m.handleChoice(input, availableCategories)
 }
 
-func (m MainMenu) showOutfitDirectory() {
+func (m MainMenu) outfitDirectory() string {
 	rootPath, err := m.outfitService.GetRootDirectory()
-	if err == nil {
-		m.renderer.ShowOutfitDirectory(rootPath)
+	if err != nil {
+		return ""
 	}
+	return rootPath
 }
 
 func (m MainMenu) handleChoice(input string, availableCategories []entities.CategoryInfo) menuTransition {
@@ -84,7 +91,7 @@ func (m MainMenu) handleChoice(input string, availableCategories []entities.Cate
 		return categoryMenuTransition(info.Category)
 	}
 
-	m.terminal().Error("Invalid choice")
+	m.terminal().Error("Invalid choice. Enter a number, R for random, M for manual, A for advanced, or Q to quit.")
 	return mainMenuTransition()
 }
 
@@ -103,7 +110,7 @@ func (m MainMenu) handleRandomOutfit() menuTransition {
 		result := m.presentation.PresentOutfitWithCategoryChoice(*randomOutfit, randomOutfit.Category.Name)
 		switch result {
 		case OutfitChoiceWorn:
-			m.terminal().Println("Goodbye!")
+			m.terminal().Success("Marked as worn. Goodbye!")
 			return exitMenuTransition()
 		case OutfitChoiceBack:
 			return mainMenuTransition()
@@ -155,12 +162,12 @@ func (m MainMenu) handleManualSelection() menuTransition {
 		}
 
 		m.renderer.ShowManualSelectionCategories(categories)
-		categoryInput := strings.ToLower(strings.TrimSpace(m.terminal().Prompt(fmt.Sprintf("\nChoose a category (1-%d) or 'q' to go back: ", len(categories)))))
-		if categoryInput == "q" {
+		categoryInput := m.terminal().Prompt(fmt.Sprintf("\nChoose a category (1-%d) or 'q' to go back: ", len(categories)))
+		if isBackOrQuitInput(categoryInput) {
 			return mainMenuTransition()
 		}
 
-		categoryIndex, err := strconv.Atoi(categoryInput)
+		categoryIndex, err := strconv.Atoi(normalizeChoiceInput(categoryInput))
 		if err != nil || categoryIndex <= 0 || categoryIndex > len(categories) {
 			m.terminal().Error("Invalid category choice")
 			continue
@@ -173,7 +180,7 @@ func (m MainMenu) handleManualSelection() menuTransition {
 			return mainMenuTransition()
 		}
 		if len(allOutfits) == 0 {
-			m.terminal().Info(fmt.Sprintf("No outfits found in %s", selectedCategory.Name))
+			m.terminal().Info(fmt.Sprintf("No outfits found in %s. Add .avatar files to: %s", selectedCategory.Name, selectedCategory.Path))
 			continue
 		}
 
@@ -185,12 +192,12 @@ func (m MainMenu) handleManualSelection() menuTransition {
 		wornFileNames := currentCategoryWornFileNames(state)
 		m.renderer.ShowManualSelectionOutfits(allOutfits, selectedCategory.Name, wornFileNames)
 
-		outfitInput := strings.ToLower(strings.TrimSpace(m.terminal().Prompt(fmt.Sprintf("\nChoose an outfit (1-%d) or 'q' to go back: ", len(allOutfits)))))
-		if outfitInput == "q" {
+		outfitInput := m.terminal().Prompt(fmt.Sprintf("\nChoose an outfit (1-%d) or 'q' to go back: ", len(allOutfits)))
+		if isBackOrQuitInput(outfitInput) {
 			continue
 		}
 
-		outfitIndex, err := strconv.Atoi(outfitInput)
+		outfitIndex, err := strconv.Atoi(normalizeChoiceInput(outfitInput))
 		if err != nil || outfitIndex <= 0 || outfitIndex > len(allOutfits) {
 			m.terminal().Error("Invalid outfit choice")
 			continue
@@ -199,9 +206,12 @@ func (m MainMenu) handleManualSelection() menuTransition {
 		selectedOutfit := allOutfits[outfitIndex-1]
 		result := m.presentation.PresentManualOutfit(selectedOutfit, selectedCategory.Name, wornFileNames[selectedOutfit.FileName])
 		switch result {
-		case OutfitChoiceSkipped:
+		case OutfitChoiceSkipped, OutfitChoiceBack:
 			continue
-		default:
+		case OutfitChoiceWorn:
+			m.terminal().Success("Marked as worn. Goodbye!")
+			return exitMenuTransition()
+		case OutfitChoiceQuit:
 			m.terminal().Println("Goodbye!")
 			return exitMenuTransition()
 		}

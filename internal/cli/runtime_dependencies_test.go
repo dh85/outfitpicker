@@ -20,6 +20,10 @@ func newProductionStyleRuntimeDependencies() RuntimeDependencies {
 		ConfigManager: usecases.NewConfigUseCase(configRepo),
 		CacheManager:  usecases.NewCacheUseCase(cacheRepo),
 		CategorySvc:   infraServices.NewCategoryScanner(system.NewDefaultFileManager()),
+		PathProvider: FuncStoragePathProvider{
+			ConfigPathFunc: configFileService.FilePath,
+			CachePathFunc:  cacheFileService.FilePath,
+		},
 		ConfigExists: func() bool {
 			path, err := configFileService.FilePath()
 			if err != nil {

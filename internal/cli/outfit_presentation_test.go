@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
@@ -11,9 +12,8 @@ import (
 func TestOutfitPresentation_PresentOutfitWithCategoryChoice(t *testing.T) {
 	t.Run("wear choice", func(t *testing.T) {
 		commands := &stubCommandHandler{}
-		presentation := NewOutfitPresentation(commands)
-		restore := withPromptResponses(t, "w")
-		defer restore()
+		var output strings.Builder
+		presentation := NewOutfitPresentation(commands, TerminalConsole{stdin: strings.NewReader("wear\n"), stdout: &output})
 
 		got := presentation.PresentOutfitWithCategoryChoice(outfitPresentationOutfit("casual", "one.avatar"), "casual")
 		if got != OutfitChoiceWorn {
@@ -22,6 +22,7 @@ func TestOutfitPresentation_PresentOutfitWithCategoryChoice(t *testing.T) {
 		if len(commands.wearCalls) != 1 || commands.wearCalls[0].FileName != "one.avatar" {
 			t.Fatalf("wearCalls = %#v, want one.avatar worn", commands.wearCalls)
 		}
+		assertOutputContains(t, output.String(), "👗 one.avatar", "📁 casual", "[W] Mark worn and quit", "[S] Skip", "[B] Back", "[Q] Quit")
 	})
 
 	t.Run("invalid then back", func(t *testing.T) {
@@ -42,7 +43,7 @@ func TestOutfitPresentation_PresentManualOutfit(t *testing.T) {
 	t.Run("yes delegates to wear choice", func(t *testing.T) {
 		commands := &stubCommandHandler{}
 		presentation := NewOutfitPresentation(commands)
-		restore := withPromptResponses(t, "y")
+		restore := withPromptResponses(t, "yes")
 		defer restore()
 
 		got := presentation.PresentManualOutfit(outfit, "casual", false)
@@ -53,7 +54,7 @@ func TestOutfitPresentation_PresentManualOutfit(t *testing.T) {
 
 	t.Run("no skips", func(t *testing.T) {
 		presentation := NewOutfitPresentation(&stubCommandHandler{})
-		restore := withPromptResponses(t, "n")
+		restore := withPromptResponses(t, "no")
 		defer restore()
 
 		got := presentation.PresentManualOutfit(outfit, "casual", false)
@@ -64,12 +65,23 @@ func TestOutfitPresentation_PresentManualOutfit(t *testing.T) {
 
 	t.Run("quit returns quit", func(t *testing.T) {
 		presentation := NewOutfitPresentation(&stubCommandHandler{})
-		restore := withPromptResponses(t, "q")
+		restore := withPromptResponses(t, "exit")
 		defer restore()
 
 		got := presentation.PresentManualOutfit(outfit, "casual", false)
 		if got != OutfitChoiceQuit {
 			t.Fatalf("PresentManualOutfit() = %v, want %v", got, OutfitChoiceQuit)
+		}
+	})
+
+	t.Run("back returns back", func(t *testing.T) {
+		presentation := NewOutfitPresentation(&stubCommandHandler{})
+		restore := withPromptResponses(t, "back")
+		defer restore()
+
+		got := presentation.PresentManualOutfit(outfit, "casual", false)
+		if got != OutfitChoiceBack {
+			t.Fatalf("PresentManualOutfit() = %v, want %v", got, OutfitChoiceBack)
 		}
 	})
 
@@ -90,7 +102,7 @@ func TestOutfitPresentation_PresentOutfitWithChoice(t *testing.T) {
 
 	t.Run("skip returns skipped", func(t *testing.T) {
 		presentation := NewOutfitPresentation(&stubCommandHandler{})
-		restore := withPromptResponses(t, "s")
+		restore := withPromptResponses(t, "skip")
 		defer restore()
 
 		got := presentation.PresentOutfitWithChoice(outfit)
@@ -101,7 +113,7 @@ func TestOutfitPresentation_PresentOutfitWithChoice(t *testing.T) {
 
 	t.Run("back returns back", func(t *testing.T) {
 		presentation := NewOutfitPresentation(&stubCommandHandler{})
-		restore := withPromptResponses(t, "b")
+		restore := withPromptResponses(t, "back")
 		defer restore()
 
 		got := presentation.PresentOutfitWithChoice(outfit)
@@ -110,9 +122,20 @@ func TestOutfitPresentation_PresentOutfitWithChoice(t *testing.T) {
 		}
 	})
 
+	t.Run("quit returns quit", func(t *testing.T) {
+		presentation := NewOutfitPresentation(&stubCommandHandler{})
+		restore := withPromptResponses(t, "quit")
+		defer restore()
+
+		got := presentation.PresentOutfitWithChoice(outfit)
+		if got != OutfitChoiceQuit {
+			t.Fatalf("PresentOutfitWithChoice() = %v, want %v", got, OutfitChoiceQuit)
+		}
+	})
+
 	t.Run("invalid then skip re-prompts", func(t *testing.T) {
 		presentation := NewOutfitPresentation(&stubCommandHandler{})
-		restore := withPromptResponses(t, "bad", "s")
+		restore := withPromptResponses(t, "bad", "n")
 		defer restore()
 
 		got := presentation.PresentOutfitWithChoice(outfit)

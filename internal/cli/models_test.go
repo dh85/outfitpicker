@@ -64,14 +64,42 @@ func TestChoiceRawValuesAndParsers(t *testing.T) {
 		t.Fatal("advanced choice raw values changed unexpectedly")
 	}
 
-	if got, ok := ParseMenuChoice("r"); !ok || got != MenuChoiceRandom {
-		t.Fatal("ParseMenuChoice(r) failed")
+	menuAliases := map[string]MenuChoice{
+		"r":        MenuChoiceRandom,
+		" random ": MenuChoiceRandom,
+		"m":        MenuChoiceManual,
+		"manual":   MenuChoiceManual,
+		"worn":     MenuChoiceWorn,
+		"unworn":   MenuChoiceUnworn,
+		"advanced": MenuChoiceAdvanced,
+		"quit":     MenuChoiceQuit,
+		"exit":     MenuChoiceQuit,
+	}
+	for input, want := range menuAliases {
+		if got, ok := ParseMenuChoice(input); !ok || got != want {
+			t.Fatalf("ParseMenuChoice(%q) = %v, %t; want %v, true", input, got, ok, want)
+		}
 	}
 	if _, ok := ParseMenuChoice("invalid"); ok {
 		t.Fatal("ParseMenuChoice(invalid) should fail")
 	}
-	if got, ok := ParseAdvancedChoice("p"); !ok || got != AdvancedChoiceChangePath {
-		t.Fatal("ParseAdvancedChoice(p) failed")
+
+	advancedAliases := map[string]AdvancedChoice{
+		"p":        AdvancedChoiceChangePath,
+		"path":     AdvancedChoiceChangePath,
+		"language": AdvancedChoiceChangeLanguage,
+		"excluded": AdvancedChoiceChangeExcluded,
+		"category": AdvancedChoiceResetCategory,
+		"reset":    AdvancedChoiceResetAll,
+		"settings": AdvancedChoiceResetSettings,
+		"back":     AdvancedChoiceBack,
+		"quit":     AdvancedChoiceQuit,
+		"exit":     AdvancedChoiceQuit,
+	}
+	for input, want := range advancedAliases {
+		if got, ok := ParseAdvancedChoice(input); !ok || got != want {
+			t.Fatalf("ParseAdvancedChoice(%q) = %v, %t; want %v, true", input, got, ok, want)
+		}
 	}
 	if _, ok := ParseAdvancedChoice("invalid"); ok {
 		t.Fatal("ParseAdvancedChoice(invalid) should fail")

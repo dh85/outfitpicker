@@ -25,6 +25,20 @@ func (a *Application) GetConfiguration() (*entities.Config, error) {
 	return a.config.GetConfiguration()
 }
 
+func (a *Application) ConfigFilePath() (string, error) {
+	if a.pathProvider == nil {
+		return "", nil
+	}
+	return a.pathProvider.ConfigFilePath()
+}
+
+func (a *Application) CacheFilePath() (string, error) {
+	if a.pathProvider == nil {
+		return "", nil
+	}
+	return a.pathProvider.CacheFilePath()
+}
+
 func (a *Application) UpdateConfiguration(config *entities.Config) error {
 	return a.config.UpdateConfiguration(config)
 }

@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -101,11 +100,22 @@ func promptWithConsole(console Console, message string) string {
 }
 
 func readPrompt(stdout io.Writer, stdin io.Reader, message string) string {
-	reader := bufio.NewReader(stdin)
 	_, _ = fmt.Fprint(stdout, Colorize(message, uiBold))
-	input, err := reader.ReadString('\n')
-	if err != nil {
-		return strings.TrimSpace(input)
+
+	var input strings.Builder
+	buffer := make([]byte, 1)
+	for {
+		n, err := stdin.Read(buffer)
+		if n > 0 {
+			if buffer[0] == '\n' {
+				break
+			}
+			input.WriteByte(buffer[0])
+		}
+		if err != nil {
+			break
+		}
 	}
-	return strings.TrimSpace(input)
+
+	return strings.TrimSpace(input.String())
 }

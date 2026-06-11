@@ -3,7 +3,6 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
 	domainerrors "github.com/dh85/outfitpicker/internal/domain/errors"
@@ -44,39 +43,48 @@ func (p OutfitPresentation) PresentManualOutfit(outfit entities.OutfitReference,
 		promptText = "Wear outfit again? (y)es, (n)o, or (q)uit? "
 	}
 
-	input := strings.ToLower(strings.TrimSpace(p.terminal().Prompt(promptText)))
-	switch input {
-	case "y":
+	input := p.terminal().Prompt(promptText)
+	switch {
+	case isYesInput(input):
 		return p.handleWearChoice(outfit)
-	case "n":
+	case isNoInput(input):
 		return OutfitChoiceSkipped
-	case "q":
+	case isBackInput(input):
+		return OutfitChoiceBack
+	case isQuitInput(input):
 		return OutfitChoiceQuit
 	default:
-		p.terminal().Error("Please enter 'y' for yes, 'n' for no, or 'q' to quit.")
+		p.terminal().Error("Please enter 'y' or 'yes' for yes, 'n' or 'no' for no, 'b' or 'back' to go back, or 'q', 'quit', or 'exit' to quit.")
 		return p.PresentManualOutfit(outfit, category, isWorn)
 	}
 }
 
 func (p OutfitPresentation) presentOutfit(outfit entities.OutfitReference, categoryContext string) OutfitChoice {
-	cleanName := displayOutfitName(outfit.FileName)
-	if categoryContext != "" {
-		p.terminal().Printf("\n✨ %s %s %s\n", Accent("I picked this outfit for you:"), cleanName, Dim("(from "+sanitizeTerminalText(categoryContext)+")"))
-	} else {
-		p.terminal().Printf("\n✨ %s %s\n", Accent("I picked this outfit for you:"), cleanName)
+	categoryName := categoryContext
+	if categoryName == "" {
+		categoryName = outfit.Category.Name
 	}
 
-	input := strings.ToLower(strings.TrimSpace(p.terminal().Prompt("Do you want to (w)ear it, (s)kip it, or go (b)ack? ")))
+	p.terminal().Printf("\n👗 %s\n", sanitizeTerminalText(outfit.FileName))
+	p.terminal().Printf("📁 %s\n\n", sanitizeTerminalText(categoryName))
+	p.terminal().Println("[W] Mark worn and quit")
+	p.terminal().Println("[S] Skip")
+	p.terminal().Println("[B] Back")
+	p.terminal().Println("[Q] Quit")
+
+	input := normalizeChoiceInput(p.terminal().Prompt("Choose an option: "))
 	switch input {
-	case "w":
+	case "w", "wear", "worn", "mark worn", "mark", "y", "yes":
 		return p.handleWearChoice(outfit)
-	case "s":
-		p.terminal().Printf("Skipped: %s\n", cleanName)
+	case "s", "skip", "n", "no":
+		p.terminal().Printf("Skipped: %s\n", sanitizeTerminalText(outfit.FileName))
 		return OutfitChoiceSkipped
-	case "b":
+	case "b", "back":
 		return OutfitChoiceBack
+	case "q", "quit", "exit":
+		return OutfitChoiceQuit
 	default:
-		p.terminal().Error("Please enter 'w' to wear, 's' to skip, or 'b' to go back.")
+		p.terminal().Error("Please enter 'w' to mark worn and quit, 's' to skip, 'b' to go back, or 'q' to quit.")
 		return p.presentOutfit(outfit, categoryContext)
 	}
 }
@@ -84,7 +92,6 @@ func (p OutfitPresentation) presentOutfit(outfit entities.OutfitReference, categ
 func (p OutfitPresentation) handleWearChoice(outfit entities.OutfitReference) OutfitChoice {
 	err := p.commands.WearOutfit(outfit)
 	if err == nil {
-		p.terminal().Success(fmt.Sprintf("Saved %s to worn outfits.", strings.TrimSuffix(outfit.FileName, ".avatar")))
 		return OutfitChoiceWorn
 	}
 

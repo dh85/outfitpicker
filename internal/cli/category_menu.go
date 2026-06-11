@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
 )
@@ -52,7 +51,7 @@ func (m CategoryMenu) Show() menuTransition {
 		m.terminal().Println(option)
 	}
 
-	input := strings.ToLower(strings.TrimSpace(m.terminal().Prompt("Choose an option: ")))
+	input := m.terminal().Prompt(categoryMenuPrompt(view.defaultAction))
 	switch resolveCategoryMenuAction(input, view.exhausted) {
 	case categoryMenuActionResetAndPick:
 		if err := m.outfitService.ResetCategory(m.category.Name); err != nil {
@@ -66,7 +65,7 @@ func (m CategoryMenu) Show() menuTransition {
 	case categoryMenuActionPick:
 		return m.handleOutfitLoop()
 	default:
-		m.terminal().Error("Invalid choice")
+		m.terminal().Error(categoryMenuInvalidChoiceMessage(view.exhausted))
 		return categoryMenuTransition(m.category)
 	}
 }
@@ -86,7 +85,7 @@ func (m CategoryMenu) handleOutfitLoop() menuTransition {
 		result := m.presentation.PresentOutfitWithChoice(*outfit)
 		switch result {
 		case OutfitChoiceWorn:
-			m.terminal().Println("Goodbye!")
+			m.terminal().Success("Marked as worn. Goodbye!")
 			return exitMenuTransition()
 		case OutfitChoiceSkipped:
 			continue
@@ -105,7 +104,7 @@ func buildCategoryMenuView(categoryName string, state entities.CategoryOutfitSta
 	}
 
 	if state.IsRotationComplete() {
-		view.message = fmt.Sprintf("All outfits in %s have been worn.", categoryName)
+		view.message = fmt.Sprintf("All outfits in %s have been worn. Press R to reset this category or B to go back.", categoryName)
 		view.options = []string{
 			"  [R] Reset category and pick a random outfit",
 			"  [B] Back (default)",
@@ -123,22 +122,41 @@ func buildCategoryMenuView(categoryName string, state entities.CategoryOutfitSta
 	return view
 }
 
-func resolveCategoryMenuAction(input string, exhausted bool) categoryMenuAction {
+func categoryMenuPrompt(defaultAction categoryMenuAction) string {
+	switch defaultAction {
+	case categoryMenuActionPick:
+		return "Choose an option [P]: "
+	case categoryMenuActionBack:
+		return "Choose an option [B]: "
+	default:
+		return "Choose an option: "
+	}
+}
+
+func categoryMenuInvalidChoiceMessage(exhausted bool) string {
 	if exhausted {
-		switch input {
-		case "r":
+		return "Invalid choice. Press R to reset this category or B to go back."
+	}
+	return "Invalid choice. Press P to pick an outfit or B to go back."
+}
+
+func resolveCategoryMenuAction(input string, exhausted bool) categoryMenuAction {
+	normalized := normalizeChoiceInput(input)
+	if exhausted {
+		switch normalized {
+		case "r", "reset", "random":
 			return categoryMenuActionResetAndPick
-		case "", "b":
+		case "", "b", "back", "q", "quit", "exit":
 			return categoryMenuActionBack
 		default:
 			return categoryMenuActionInvalid
 		}
 	}
 
-	switch input {
-	case "", "p":
+	switch normalized {
+	case "", "p", "pick", "r", "random":
 		return categoryMenuActionPick
-	case "b":
+	case "b", "back", "q", "quit", "exit":
 		return categoryMenuActionBack
 	default:
 		return categoryMenuActionInvalid

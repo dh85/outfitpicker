@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
@@ -61,16 +62,16 @@ func TestMainMenu_handleChoice(t *testing.T) {
 		picker.random.globalResults = []stubSelectorResult{{outfit: mainMenuOutfitPtr("casual", "one.avatar")}}
 		menu := newMainMenuForTest(picker)
 		assertMenuTransitionWithPrompts(t, menuDestinationMain, func() menuTransition {
-			return menu.handleChoice("r", nil)
-		}, "b")
+			return menu.handleChoice("random", nil)
+		}, "back")
 	})
 
 	t.Run("manual choice", func(t *testing.T) {
 		picker := newStubRuntime()
 		menu := newMainMenuForTest(picker)
 		assertMenuTransitionWithPrompts(t, menuDestinationMain, func() menuTransition {
-			return menu.handleChoice("m", nil)
-		}, "q")
+			return menu.handleChoice("manual", nil)
+		}, "exit")
 	})
 
 	t.Run("worn choice", func(t *testing.T) {
@@ -104,7 +105,7 @@ func TestMainMenu_handleChoice(t *testing.T) {
 		menu := newMainMenuForTest(newStubRuntime())
 
 		assertMenuTransition(t, menuDestinationExit, func() menuTransition {
-			return menu.handleChoice("q", nil)
+			return menu.handleChoice("quit", nil)
 		})
 	})
 
@@ -125,13 +126,16 @@ func TestMainMenu_handleChoice(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid choice reshows", func(t *testing.T) {
+	t.Run("invalid choice reshows with next-step hint", func(t *testing.T) {
 		picker := newStubRuntime()
+		var output strings.Builder
 		menu := newMainMenuForTest(picker)
+		menu.console = TerminalConsole{stderr: &output}
 
 		assertMenuTransition(t, menuDestinationMain, func() menuTransition {
 			return menu.handleChoice("x", nil)
 		})
+		assertOutputContains(t, output.String(), "Invalid choice", "Enter a number", "R for random", "M for manual", "A for advanced", "Q to quit")
 	})
 }
 
@@ -152,11 +156,15 @@ func TestMainMenu_handleRandomOutfit(t *testing.T) {
 		assertMenuTransition(t, menuDestinationMain, menu.handleRandomOutfit)
 	})
 
-	t.Run("worn exits", func(t *testing.T) {
+	t.Run("worn exits with explicit confirmation", func(t *testing.T) {
 		picker := newStubRuntime()
 		picker.random.globalResults = []stubSelectorResult{{outfit: mainMenuOutfitPtr("casual", "one.avatar")}}
+		var output strings.Builder
 		menu := newMainMenuForTest(picker)
+		menu.console = TerminalConsole{stdout: &output}
+
 		assertMenuTransitionWithPrompts(t, menuDestinationExit, menu.handleRandomOutfit, "w")
+		assertOutputContains(t, output.String(), "Marked as worn. Goodbye!")
 	})
 
 	t.Run("back reshows", func(t *testing.T) {
@@ -257,7 +265,7 @@ func TestMainMenu_handleManualSelection(t *testing.T) {
 	t.Run("category q reshows main menu", func(t *testing.T) {
 		picker := newStubRuntime()
 		menu := newMainMenuForTest(picker)
-		restore := withPromptResponses(t, "q")
+		restore := withPromptResponses(t, "back")
 		defer restore()
 
 		assertMenuDestination(t, menu.handleManualSelection(), menuDestinationMain)
@@ -282,14 +290,15 @@ func TestMainMenu_handleManualSelection(t *testing.T) {
 		assertMenuDestination(t, menu.handleManualSelection(), menuDestinationMain)
 	})
 
-	t.Run("no outfits recurses", func(t *testing.T) {
+	t.Run("no outfits continues with next-step hint", func(t *testing.T) {
 		picker := newStubRuntime()
 		picker.wardrobe.allOutfitsByCategory = map[string][]entities.OutfitReference{"casual": nil}
+		var output strings.Builder
 		menu := newMainMenuForTest(picker)
-		restore := withPromptResponses(t, "1", "q")
-		defer restore()
+		menu.console = TerminalConsole{stdin: strings.NewReader("1\nq\n"), stdout: &output}
 
 		assertMenuDestination(t, menu.handleManualSelection(), menuDestinationMain)
+		assertOutputContains(t, output.String(), "No outfits found in casual", "Add .avatar files to:", cliTestCategoryPath("casual"))
 	})
 
 	t.Run("outfit state error reshows", func(t *testing.T) {
@@ -308,7 +317,7 @@ func TestMainMenu_handleManualSelection(t *testing.T) {
 		picker.wardrobe.allOutfitsByCategory = map[string][]entities.OutfitReference{"casual": {mainMenuOutfit("casual", "one.avatar")}}
 		picker.wardrobe.outfitStates = map[string]entities.CategoryOutfitState{"casual": mainMenuState(mainMenuCategory("casual"), []string{"one.avatar"}, []string{"one.avatar"}, nil)}
 		menu := newMainMenuForTest(picker)
-		restore := withPromptResponses(t, "1", "q", "q")
+		restore := withPromptResponses(t, "1", "back", "exit")
 		defer restore()
 
 		assertMenuDestination(t, menu.handleManualSelection(), menuDestinationMain)

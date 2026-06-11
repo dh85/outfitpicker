@@ -19,6 +19,7 @@ type CommandRuntime interface {
 	ConfigurationController
 	OutfitCommandHandler
 	RandomOutfitSelector
+	StoragePathProvider
 }
 
 var commandRandomIndex = rand.Intn
@@ -65,6 +66,8 @@ type commandCLI struct {
 	List   listCommand   `cmd:"" help:"List categories or outfit rotation state."`
 	Reset  resetCommand  `cmd:"" help:"Reset worn outfit rotation state."`
 	Config configCommand `cmd:"" help:"Show or update configuration."`
+	Paths  pathsCommand  `cmd:"" help:"Show config, cache, and wardrobe paths."`
+	Doctor doctorCommand `cmd:"" help:"Check configuration, wardrobe, and cache health."`
 }
 
 type pickCommand struct {
@@ -114,6 +117,18 @@ type configCommand struct {
 	Get     configGetCommand     `cmd:"" help:"Show current configuration."`
 	SetRoot configSetRootCommand `cmd:"" name:"set-root" help:"Set the wardrobe root directory."`
 	Exclude configExcludeCommand `cmd:"" help:"Add categories to the exclusion list."`
+}
+
+type pathsCommand struct{}
+
+func (c pathsCommand) Run(executor *commandExecutor) error {
+	return commandExit(executor.paths())
+}
+
+type doctorCommand struct{}
+
+func (c doctorCommand) Run(executor *commandExecutor) error {
+	return commandExit(executor.doctor())
 }
 
 type configGetCommand struct{}
@@ -320,15 +335,14 @@ func (e commandExecutor) shouldMarkPickedOutfit(options pickOptions) (bool, bool
 	case pickMarkAlways:
 		return true, true
 	default:
-		input := strings.ToLower(strings.TrimSpace(e.console.Prompt("Mark as worn? [Y/n]: ")))
-		switch input {
-		case "", "y", "yes":
+		input := e.console.Prompt("Mark as worn? [Y/n]: ")
+		if normalizeChoiceInput(input) == "" || isYesInput(input) {
 			return true, true
-		case "n", "no":
-			return false, true
-		default:
-			return false, false
 		}
+		if isNoInput(input) {
+			return false, true
+		}
+		return false, false
 	}
 }
 
@@ -407,6 +421,115 @@ func (e commandExecutor) reset(options resetOptions) int {
 	}
 	e.console.Success(fmt.Sprintf("Reset worn outfits for %s", options.categoryName))
 	return 0
+}
+
+func (e commandExecutor) paths() int {
+	configPath, err := e.runtime.ConfigFilePath()
+	if err != nil {
+		e.console.Error(fmt.Sprintf("Failed to resolve config path: %v", err))
+		return 1
+	}
+	cachePath, err := e.runtime.CacheFilePath()
+	if err != nil {
+		e.console.Error(fmt.Sprintf("Failed to resolve cache path: %v", err))
+		return 1
+	}
+
+	wardrobe := "not configured"
+	if config, err := e.service.GetConfiguration(); err == nil && config != nil {
+		wardrobe = config.Root
+	}
+
+	e.console.Printf("Config file: %s\n", sanitizeTerminalText(configPath))
+	e.console.Printf("Cache file:  %s\n", sanitizeTerminalText(cachePath))
+	e.console.Printf("Wardrobe:    %s\n", sanitizeTerminalText(wardrobe))
+	return 0
+}
+
+func (e commandExecutor) doctor() int {
+	status := 0
+	configPath, err := e.runtime.ConfigFilePath()
+	if err != nil {
+		e.doctorError("Config path could not be resolved", err)
+		return 1
+	}
+	if _, err := os.Stat(configPath); err != nil {
+		if os.IsNotExist(err) {
+			e.doctorWarning("Config file does not exist")
+			status = 1
+		} else {
+			e.doctorError("Config file is not accessible", err)
+			return 1
+		}
+	} else {
+		e.doctorOK("Config file exists")
+	}
+
+	config, err := e.service.GetConfiguration()
+	if err != nil {
+		e.doctorError("Config file is invalid", err)
+		return 1
+	}
+	if config == nil {
+		e.doctorWarning("Wardrobe is not configured")
+		return 1
+	}
+
+	if _, err := os.Stat(config.Root); err != nil {
+		if os.IsNotExist(err) {
+			e.doctorWarning("Wardrobe directory does not exist")
+			status = 1
+		} else {
+			e.doctorError("Wardrobe directory is not accessible", err)
+			return 1
+		}
+	} else {
+		e.doctorOK("Wardrobe directory exists")
+	}
+
+	infos, err := e.service.GetCategoryInfo()
+	if err != nil {
+		e.doctorError("Could not scan wardrobe categories", err)
+		return 1
+	}
+	e.doctorOK(fmt.Sprintf("Found %d %s", len(infos), pluralize("category", len(infos))))
+	avatarCount := 0
+	for _, info := range infos {
+		avatarCount += info.OutfitCount
+	}
+	e.doctorOK(fmt.Sprintf("Found %d .avatar %s", avatarCount, pluralize("file", avatarCount)))
+	for _, info := range infos {
+		switch info.State {
+		case entities.CategoryStateEmpty, entities.CategoryStateNoAvatarFiles:
+			e.doctorWarning(fmt.Sprintf("%s has no .avatar files", info.Category.Name))
+			status = 1
+		case entities.CategoryStateUserExcluded:
+			e.doctorWarning(fmt.Sprintf("%s is excluded from random selection", info.Category.Name))
+		}
+	}
+
+	if _, err := e.runtime.CacheFilePath(); err != nil {
+		e.doctorError("Cache path could not be resolved", err)
+		return 1
+	}
+	if _, err := e.runtime.GetAllOutfitStates(); err != nil {
+		e.doctorError("Cache file is invalid", err)
+		return 1
+	}
+	e.doctorOK("Cache file is valid")
+	return status
+}
+
+func (e commandExecutor) doctorOK(message string) {
+	e.console.Success(message)
+}
+
+func (e commandExecutor) doctorWarning(message string) {
+	e.console.Warning(message)
+}
+
+func (e commandExecutor) doctorError(message string, err error) {
+	e.console.Error(fmt.Sprintf("%s: %v", message, err))
 }
 
 func (e commandExecutor) configGet() int {

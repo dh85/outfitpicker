@@ -205,10 +205,11 @@ func (s *stubRandomOutfitSelector) ShowNextUniqueRandomOutfitFrom(categoryName s
 }
 
 type stubRuntime struct {
-	wardrobe *stubWardrobeReader
-	config   *stubConfigurationController
-	commands *stubCommandHandler
-	random   *stubRandomOutfitSelector
+	wardrobe     *stubWardrobeReader
+	config       *stubConfigurationController
+	commands     *stubCommandHandler
+	random       *stubRandomOutfitSelector
+	pathProvider StoragePathProvider
 }
 
 func newStubRuntime() *stubRuntime {
@@ -217,6 +218,10 @@ func newStubRuntime() *stubRuntime {
 		config:   &stubConfigurationController{},
 		commands: &stubCommandHandler{},
 		random:   &stubRandomOutfitSelector{},
+		pathProvider: StaticStoragePathProvider{
+			ConfigPath: "/outfitpicker-test/config.json",
+			CachePath:  "/outfitpicker-test/cache.json",
+		},
 	}
 }
 
@@ -254,6 +259,14 @@ func (s *stubRuntime) GetRootDirectory() (string, error) {
 
 func (s *stubRuntime) GetConfiguration() (*entities.Config, error) {
 	return s.config.GetConfiguration()
+}
+
+func (s *stubRuntime) ConfigFilePath() (string, error) {
+	return s.pathProvider.ConfigFilePath()
+}
+
+func (s *stubRuntime) CacheFilePath() (string, error) {
+	return s.pathProvider.CacheFilePath()
 }
 
 func (s *stubRuntime) UpdateConfiguration(config *entities.Config) error {

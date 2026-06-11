@@ -131,14 +131,13 @@ func ConfirmWithConsole(console Console, message string, defaultValue bool) bool
 		return defaultValue
 	}
 
-	switch strings.ToLower(strings.TrimSpace(response)) {
-	case "y", "yes":
+	if isYesInput(response) {
 		return true
-	case "n", "no":
-		return false
-	default:
-		return defaultValue
 	}
+	if isNoInput(response) {
+		return false
+	}
+	return defaultValue
 }
 
 func Info(message string) {

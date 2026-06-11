@@ -52,6 +52,10 @@ func (s OutfitService) GetOutfitState(category entities.CategoryReference) (enti
 	return s.wardrobe.GetOutfitState(category)
 }
 
+func (s OutfitService) GetAllOutfitStates() (map[string]entities.CategoryOutfitState, error) {
+	return s.wardrobe.GetAllOutfitStates()
+}
+
 func (s OutfitService) ShowAllOutfits(categoryName string) ([]entities.OutfitReference, error) {
 	return s.wardrobe.ShowAllOutfits(categoryName)
 }

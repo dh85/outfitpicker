@@ -9,6 +9,29 @@ import (
 	"github.com/dh85/outfitpicker/internal/domain/entities"
 )
 
+func TestMenuRenderer_ShowWardrobeSummary(t *testing.T) {
+	renderer := MenuRenderer{}
+	casual := rendererCategory("casual")
+	formal := rendererCategory("formal")
+	archive := rendererCategory("archive")
+	wardrobe := newStubWardrobeReader()
+	wardrobe.outfitStates = map[string]entities.CategoryOutfitState{
+		"casual":  rendererState(casual, []string{"one.avatar", "two.avatar"}, []string{"two.avatar"}, []string{"one.avatar"}),
+		"formal":  rendererState(formal, []string{"jacket.avatar", "shirt.avatar"}, []string{"jacket.avatar", "shirt.avatar"}, nil),
+		"archive": rendererState(archive, []string{"old.avatar"}, nil, []string{"old.avatar"}),
+	}
+
+	output := captureStdout(t, func() {
+		renderer.ShowWardrobeSummary(cliTestOutfitRoot, []entities.CategoryInfo{
+			entities.NewCategoryInfo(casual, entities.CategoryStateHasOutfits, 2),
+			entities.NewCategoryInfo(formal, entities.CategoryStateHasOutfits, 2),
+			entities.NewCategoryInfo(archive, entities.CategoryStateUserExcluded, 1),
+		}, wardrobe)
+	})
+
+	assertOutputContains(t, output, "Wardrobe:", cliTestOutfitRoot, "Progress: 2 of 5 outfits worn", "Available for random: 3", "Excluded categories: 1")
+}
+
 func TestMenuRenderer_ShowAvailableCategories(t *testing.T) {
 	renderer := MenuRenderer{}
 	casual := rendererCategory("casual")

@@ -2,6 +2,7 @@ package cli
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
@@ -68,7 +69,7 @@ func TestBuildCategoryMenuView_ExhaustedCategory(t *testing.T) {
 	if view.defaultAction != categoryMenuActionBack {
 		t.Fatalf("defaultAction = %v, want back", view.defaultAction)
 	}
-	if view.message != "All outfits in casual have been worn." {
+	if view.message != "All outfits in casual have been worn. Press R to reset this category or B to go back." {
 		t.Fatalf("message = %q", view.message)
 	}
 	if len(view.options) != 2 {
@@ -82,6 +83,26 @@ func TestBuildCategoryMenuView_ExhaustedCategory(t *testing.T) {
 	}
 }
 
+func TestCategoryMenuPrompt(t *testing.T) {
+	tests := []struct {
+		name          string
+		defaultAction categoryMenuAction
+		want          string
+	}{
+		{name: "pick default", defaultAction: categoryMenuActionPick, want: "Choose an option [P]: "},
+		{name: "back default", defaultAction: categoryMenuActionBack, want: "Choose an option [B]: "},
+		{name: "no default", defaultAction: categoryMenuActionInvalid, want: "Choose an option: "},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := categoryMenuPrompt(tt.defaultAction); got != tt.want {
+				t.Fatalf("categoryMenuPrompt() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestResolveCategoryMenuAction(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -91,11 +112,17 @@ func TestResolveCategoryMenuAction(t *testing.T) {
 	}{
 		{name: "normal default pick", input: "", want: categoryMenuActionPick},
 		{name: "normal explicit pick", input: "p", want: categoryMenuActionPick},
+		{name: "normal pick alias", input: "pick", want: categoryMenuActionPick},
+		{name: "normal random alias", input: "random", want: categoryMenuActionPick},
 		{name: "normal back", input: "b", want: categoryMenuActionBack},
+		{name: "normal back alias", input: "back", want: categoryMenuActionBack},
+		{name: "normal quit alias", input: "quit", want: categoryMenuActionBack},
 		{name: "normal invalid", input: "x", want: categoryMenuActionInvalid},
 		{name: "exhausted default back", input: "", exhausted: true, want: categoryMenuActionBack},
 		{name: "exhausted explicit back", input: "b", exhausted: true, want: categoryMenuActionBack},
 		{name: "exhausted reset and pick", input: "r", exhausted: true, want: categoryMenuActionResetAndPick},
+		{name: "exhausted reset alias", input: "reset", exhausted: true, want: categoryMenuActionResetAndPick},
+		{name: "exhausted random alias", input: "random", exhausted: true, want: categoryMenuActionResetAndPick},
 		{name: "exhausted rejects pick", input: "p", exhausted: true, want: categoryMenuActionInvalid},
 	}
 
@@ -167,11 +194,14 @@ func TestCategoryMenu_Show(t *testing.T) {
 		assertWearRequested(t, picker, "one.avatar")
 	})
 
-	t.Run("invalid choice re-prompts", func(t *testing.T) {
+	t.Run("invalid choice re-prompts with next-step hint", func(t *testing.T) {
 		picker := newStubRuntime()
 		picker.wardrobe.outfitState = categoryMenuState("casual", []string{"one.avatar"}, []string{"one.avatar"}, nil)
+		var output strings.Builder
 		menu := newCategoryMenuForTest(picker, "casual", nil)
-		assertMenuTransitionWithPrompts(t, menuDestinationCategory, menu.Show, "x")
+		menu.console = TerminalConsole{stdin: strings.NewReader("x\n"), stdout: &output, stderr: &output}
+		assertMenuTransition(t, menuDestinationCategory, menu.Show)
+		assertOutputContains(t, output.String(), "Invalid choice", "Press P to pick", "B to go back")
 	})
 }
 

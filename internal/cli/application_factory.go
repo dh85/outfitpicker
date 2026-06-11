@@ -14,15 +14,17 @@ type RuntimeDependencies struct {
 	CategorySvc   interfaces.CategoryService
 	RandomInt     func(int) int
 	ConfigExists  func() bool
+	PathProvider  StoragePathProvider
 }
 
 type Application struct {
-	wardrobe  WardrobeReader
-	config    ConfigurationController
-	commands  OutfitCommandHandler
-	randomInt func(int) int
-	selection RandomOutfitSelector
-	session   *OutfitSession
+	wardrobe     WardrobeReader
+	config       ConfigurationController
+	commands     OutfitCommandHandler
+	randomInt    func(int) int
+	selection    RandomOutfitSelector
+	session      *OutfitSession
+	pathProvider StoragePathProvider
 }
 
 func buildApplication(config *entities.Config, deps RuntimeDependencies) *Application {
@@ -35,11 +37,12 @@ func buildApplication(config *entities.Config, deps RuntimeDependencies) *Applic
 	configController := NewSessionConfigController(config, deps.ConfigManager, deps.CacheManager, session)
 	commands := NewSessionCommandHandler(deps.CategorySvc, deps.ConfigManager, deps.CacheManager, session)
 	app := &Application{
-		wardrobe:  wardrobe,
-		config:    configController,
-		commands:  commands,
-		randomInt: randomInt,
-		session:   session,
+		wardrobe:     wardrobe,
+		config:       configController,
+		commands:     commands,
+		randomInt:    randomInt,
+		session:      session,
+		pathProvider: deps.PathProvider,
 	}
 	app.selection = NewRuntimeSelectionService(
 		deps.CategorySvc,

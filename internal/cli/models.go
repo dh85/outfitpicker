@@ -1,5 +1,7 @@
 package cli
 
+import "strings"
+
 type MenuChoice string
 
 const (
@@ -23,10 +25,19 @@ func AllMenuChoices() []MenuChoice {
 }
 
 func ParseMenuChoice(value string) (MenuChoice, bool) {
-	choice := MenuChoice(value)
-	switch choice {
-	case MenuChoiceRandom, MenuChoiceManual, MenuChoiceWorn, MenuChoiceUnworn, MenuChoiceAdvanced, MenuChoiceQuit:
-		return choice, true
+	switch normalizeChoiceInput(value) {
+	case "r", "random":
+		return MenuChoiceRandom, true
+	case "m", "manual":
+		return MenuChoiceManual, true
+	case "w", "worn":
+		return MenuChoiceWorn, true
+	case "u", "unworn":
+		return MenuChoiceUnworn, true
+	case "a", "advanced":
+		return MenuChoiceAdvanced, true
+	case "q", "quit", "exit":
+		return MenuChoiceQuit, true
 	default:
 		return "", false
 	}
@@ -78,10 +89,23 @@ func AllAdvancedChoices() []AdvancedChoice {
 }
 
 func ParseAdvancedChoice(value string) (AdvancedChoice, bool) {
-	choice := AdvancedChoice(value)
-	switch choice {
-	case AdvancedChoiceChangePath, AdvancedChoiceChangeLanguage, AdvancedChoiceChangeExcluded, AdvancedChoiceResetCategory, AdvancedChoiceResetAll, AdvancedChoiceResetSettings, AdvancedChoiceBack, AdvancedChoiceQuit:
-		return choice, true
+	switch normalizeChoiceInput(value) {
+	case "p", "path":
+		return AdvancedChoiceChangePath, true
+	case "l", "language":
+		return AdvancedChoiceChangeLanguage, true
+	case "e", "excluded", "exclude", "exclusions":
+		return AdvancedChoiceChangeExcluded, true
+	case "c", "category":
+		return AdvancedChoiceResetCategory, true
+	case "r", "reset":
+		return AdvancedChoiceResetAll, true
+	case "s", "settings":
+		return AdvancedChoiceResetSettings, true
+	case "b", "back":
+		return AdvancedChoiceBack, true
+	case "q", "quit", "exit":
+		return AdvancedChoiceQuit, true
 	default:
 		return "", false
 	}
@@ -107,6 +131,50 @@ func (a AdvancedChoice) Description() string {
 		return "Quit"
 	default:
 		return ""
+	}
+}
+
+func normalizeChoiceInput(value string) string {
+	return strings.ToLower(strings.TrimSpace(value))
+}
+
+func isBackInput(value string) bool {
+	switch normalizeChoiceInput(value) {
+	case "b", "back":
+		return true
+	default:
+		return false
+	}
+}
+
+func isQuitInput(value string) bool {
+	switch normalizeChoiceInput(value) {
+	case "q", "quit", "exit":
+		return true
+	default:
+		return false
+	}
+}
+
+func isBackOrQuitInput(value string) bool {
+	return isBackInput(value) || isQuitInput(value)
+}
+
+func isYesInput(value string) bool {
+	switch normalizeChoiceInput(value) {
+	case "y", "yes":
+		return true
+	default:
+		return false
+	}
+}
+
+func isNoInput(value string) bool {
+	switch normalizeChoiceInput(value) {
+	case "n", "no":
+		return true
+	default:
+		return false
 	}
 }
 

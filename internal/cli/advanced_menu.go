@@ -23,7 +23,7 @@ func (m AdvancedMenu) Show() menuTransition {
 		m.terminal().Printf("  %s %s\n", KeyLabel(strings.ToUpper(string(choice))), choice.Description())
 	}
 
-	input := strings.ToLower(strings.TrimSpace(m.terminal().Prompt("\nChoose a letter: ")))
+	input := m.terminal().Prompt("\nChoose a letter: ")
 	choice, ok := ParseAdvancedChoice(input)
 	if !ok {
 		m.terminal().Error("Invalid choice")
@@ -58,8 +58,9 @@ func (m AdvancedMenu) dispatchChoice(choice AdvancedChoice) menuTransition {
 }
 
 func (m AdvancedMenu) handleResetAll() menuTransition {
-	m.terminal().Warning("This will reset all worn outfits.")
-	confirm := strings.ToLower(strings.TrimSpace(m.terminal().Prompt("Proceed? (y)es or (b)ack: ")))
+	m.terminal().Warning("This will reset worn status for all categories.")
+	m.showResetAllPreview()
+	confirm := m.terminal().Prompt("Reset all worn outfits? [y/N]: ")
 	if !shouldProceedWithDestructiveAction(confirm) {
 		m.terminal().Info("Reset cancelled")
 		return advancedMenuTransition()
@@ -85,8 +86,11 @@ func (m AdvancedMenu) handleResetCategory() menuTransition {
 		m.terminal().Printf("  [%d] %s\n", index+1, sanitizeTerminalText(category.Name))
 	}
 
-	input := strings.TrimSpace(m.terminal().Prompt("\nChoose a number: "))
-	index, err := strconv.Atoi(input)
+	input := m.terminal().Prompt("\nChoose a number: ")
+	if isBackOrQuitInput(input) {
+		return advancedMenuTransition()
+	}
+	index, err := strconv.Atoi(normalizeChoiceInput(input))
 	if err != nil || index <= 0 || index > len(categories) {
 		m.terminal().Error("Invalid choice")
 		return advancedMenuTransition()
@@ -122,8 +126,12 @@ func (m AdvancedMenu) handlePathChange() menuTransition {
 	}
 
 	if pathChangeNeedsResetConfirmation(currentConfig.Root, updatedConfig.Root) {
-		m.terminal().Warning("This will reset your worn outfits.")
-		confirm := strings.ToLower(strings.TrimSpace(m.terminal().Prompt("Proceed? (y)es or (b)ack: ")))
+		m.terminal().Warning("Changing wardrobe path will reset worn outfit history.")
+		m.terminal().Println()
+		m.terminal().Printf("Current: %s\n", sanitizeTerminalText(displayWardrobePath(currentConfig.Root)))
+		m.terminal().Printf("New:     %s\n", sanitizeTerminalText(displayWardrobePath(updatedConfig.Root)))
+		m.terminal().Println()
+		confirm := m.terminal().Prompt("Continue? [y/N]: ")
 		if !shouldProceedWithDestructiveAction(confirm) {
 			m.terminal().Info("Path change cancelled")
 			return advancedMenuTransition()
@@ -229,15 +237,15 @@ func (m AdvancedMenu) handleExcludedChange() menuTransition {
 		}
 		m.terminal().Println("  [B] Back to advanced menu")
 
-		choice := strings.ToLower(strings.TrimSpace(m.terminal().Prompt("\nChoose an option: ")))
+		choice := normalizeChoiceInput(m.terminal().Prompt("\nChoose an option: "))
 		switch choice {
-		case "a":
+		case "a", "add":
 			m.applyExcludedAdd(currentConfig, nonExcludedList)
-		case "r":
+		case "r", "remove":
 			m.applyExcludedRemove(currentConfig, excludedList)
-		case "c":
+		case "c", "clear":
 			m.applyExcludedClear(currentConfig, excludedList)
-		case "b":
+		case "b", "back", "q", "quit", "exit":
 			return advancedMenuTransition()
 		default:
 			m.terminal().Error("Invalid option")
@@ -361,8 +369,8 @@ func (m AdvancedMenu) applyExcludedClear(currentConfig *entities.Config, exclude
 
 func (m AdvancedMenu) handleResetSettings() menuTransition {
 	m.terminal().Println("WARNING: This will delete all configuration and worn outfit data.")
-	confirm := strings.ToLower(strings.TrimSpace(m.terminal().Prompt("Are you sure? Type '(y)es' to confirm: ")))
-	if confirm != "yes" && confirm != "y" {
+	confirm := m.terminal().Prompt("Reset all settings and worn outfit data? [y/N]: ")
+	if !isYesInput(confirm) {
 		m.terminal().Info("Reset cancelled")
 		return advancedMenuTransition()
 	}
@@ -407,15 +415,40 @@ func parseCategorySelections(input string, options []string) []string {
 	return result
 }
 
+func (m AdvancedMenu) showResetAllPreview() {
+	states, err := m.outfitService.GetAllOutfitStates()
+	if err != nil {
+		m.terminal().Warning(fmt.Sprintf("Could not load reset preview: %v", err))
+		return
+	}
+
+	affected := make([]entities.CategoryOutfitState, 0, len(states))
+	for _, state := range states {
+		if state.WornCount() > 0 {
+			affected = append(affected, state)
+		}
+	}
+	sort.Slice(affected, func(i, j int) bool {
+		return affected[i].Category.Name < affected[j].Category.Name
+	})
+
+	m.terminal().Println()
+	m.terminal().Println("Affected:")
+	if len(affected) == 0 {
+		m.terminal().Println("  none")
+		m.terminal().Println()
+		return
+	}
+	for _, state := range affected {
+		m.terminal().Printf("  %-10s %d worn\n", sanitizeTerminalText(state.Category.Name), state.WornCount())
+	}
+	m.terminal().Println()
+}
+
 func pathChangeNeedsResetConfirmation(currentRoot, newRoot string) bool {
 	return strings.TrimSpace(currentRoot) != "" && strings.TrimSpace(currentRoot) != strings.TrimSpace(newRoot)
 }
 
 func shouldProceedWithDestructiveAction(input string) bool {
-	switch strings.ToLower(strings.TrimSpace(input)) {
-	case "y", "yes":
-		return true
-	default:
-		return false
-	}
+	return isYesInput(input)
 }

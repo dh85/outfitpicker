@@ -11,6 +11,182 @@ import (
 	"github.com/dh85/outfitpicker/internal/domain/entities"
 )
 
+func TestExecuteCommand_Paths(t *testing.T) {
+	t.Run("shows paths", func(t *testing.T) {
+		runtime := newStubRuntime()
+		runtime.config.currentConfig = mustCommandConfig(t, cliTestOutfitRoot, map[string]bool{"jackets": true})
+		runtime.pathProvider = StaticStoragePathProvider{
+			ConfigPath: "/state/outfitpicker/config.json",
+			CachePath:  "/state/outfitpicker/cache.json",
+		}
+
+		var stdout bytes.Buffer
+		handled, code := ExecuteCommand([]string{"paths"}, runtime, TerminalConsole{stdout: &stdout})
+
+		if !handled || code != 0 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 0", handled, code)
+		}
+		assertOutputContains(t, stdout.String(), "Config file: /state/outfitpicker/config.json", "Cache file:  /state/outfitpicker/cache.json", "Wardrobe:    "+cliTestOutfitRoot)
+	})
+
+	t.Run("config path error", func(t *testing.T) {
+		runtime := newStubRuntime()
+		runtime.pathProvider = FuncStoragePathProvider{
+			ConfigPathFunc: func() (string, error) { return "", errors.New("config path failed") },
+			CachePathFunc:  func() (string, error) { return "/cache.json", nil },
+		}
+		var stderr bytes.Buffer
+		handled, code := ExecuteCommand([]string{"paths"}, runtime, TerminalConsole{stderr: &stderr})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stderr.String(), "Failed to resolve config path", "config path failed")
+	})
+
+	t.Run("cache path error", func(t *testing.T) {
+		runtime := newStubRuntime()
+		runtime.pathProvider = FuncStoragePathProvider{
+			ConfigPathFunc: func() (string, error) { return "/config.json", nil },
+			CachePathFunc:  func() (string, error) { return "", errors.New("cache path failed") },
+		}
+		var stderr bytes.Buffer
+		handled, code := ExecuteCommand([]string{"paths"}, runtime, TerminalConsole{stderr: &stderr})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stderr.String(), "Failed to resolve cache path", "cache path failed")
+	})
+}
+
+func TestExecuteCommand_Doctor(t *testing.T) {
+	t.Run("healthy with warnings", func(t *testing.T) {
+		runtime := newStubRuntime()
+		stateDir := t.TempDir()
+		wardrobeDir := cliTestHomeTempDir(t, "outfitpicker-doctor-wardrobe-*")
+		configPath := filepath.Join(stateDir, "config.json")
+		cachePath := filepath.Join(stateDir, "cache.json")
+		if err := os.WriteFile(configPath, []byte("{}"), 0600); err != nil {
+			t.Fatalf("WriteFile(config) error = %v", err)
+		}
+		runtime.pathProvider = StaticStoragePathProvider{ConfigPath: configPath, CachePath: cachePath}
+		runtime.config.currentConfig = mustCommandConfig(t, wardrobeDir, map[string]bool{"jackets": true})
+		runtime.wardrobe.categoryInfos = []entities.CategoryInfo{
+			entities.NewCategoryInfo(entities.NewCategoryReference("Shoes", filepath.Join(wardrobeDir, "Shoes")), entities.CategoryStateNoAvatarFiles, 0),
+			entities.NewCategoryInfo(entities.NewCategoryReference("Jackets", filepath.Join(wardrobeDir, "Jackets")), entities.CategoryStateUserExcluded, 3),
+			entities.NewCategoryInfo(entities.NewCategoryReference("Hats", filepath.Join(wardrobeDir, "Hats")), entities.CategoryStateHasOutfits, 2),
+		}
+		runtime.wardrobe.allOutfitStates = map[string]entities.CategoryOutfitState{}
+
+		var stdout bytes.Buffer
+		handled, code := ExecuteCommand([]string{"doctor"}, runtime, TerminalConsole{stdout: &stdout})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1 for warnings", handled, code)
+		}
+		assertOutputContains(t, stdout.String(), "Config file exists", "Wardrobe directory exists", "Found 3 categories", "Found 5 .avatar files", "Shoes has no .avatar files", "Jackets is excluded from random selection", "Cache file is valid")
+	})
+
+	t.Run("invalid cache fails", func(t *testing.T) {
+		runtime := newStubRuntime()
+		stateDir := t.TempDir()
+		wardrobeDir := cliTestHomeTempDir(t, "outfitpicker-doctor-wardrobe-*")
+		configPath := filepath.Join(stateDir, "config.json")
+		if err := os.WriteFile(configPath, []byte("{}"), 0600); err != nil {
+			t.Fatalf("WriteFile(config) error = %v", err)
+		}
+		runtime.pathProvider = StaticStoragePathProvider{ConfigPath: configPath, CachePath: filepath.Join(stateDir, "cache.json")}
+		runtime.config.currentConfig = mustCommandConfig(t, wardrobeDir, nil)
+		runtime.wardrobe.allOutfitStatesErr = errors.New("bad json")
+
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		handled, code := ExecuteCommand([]string{"doctor"}, runtime, TerminalConsole{stdout: &stdout, stderr: &stderr})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stderr.String(), "Cache file is invalid", "bad json")
+	})
+
+	t.Run("missing config warns", func(t *testing.T) {
+		runtime := newStubRuntime()
+		stateDir := t.TempDir()
+		runtime.pathProvider = StaticStoragePathProvider{ConfigPath: filepath.Join(stateDir, "missing-config.json"), CachePath: filepath.Join(stateDir, "cache.json")}
+
+		var stdout bytes.Buffer
+		handled, code := ExecuteCommand([]string{"doctor"}, runtime, TerminalConsole{stdout: &stdout})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stdout.String(), "Config file does not exist", "Wardrobe is not configured")
+	})
+
+	t.Run("invalid config fails", func(t *testing.T) {
+		runtime := newStubRuntime()
+		stateDir := t.TempDir()
+		configPath := filepath.Join(stateDir, "config.json")
+		if err := os.WriteFile(configPath, []byte("{}"), 0600); err != nil {
+			t.Fatalf("WriteFile(config) error = %v", err)
+		}
+		runtime.pathProvider = StaticStoragePathProvider{ConfigPath: configPath, CachePath: filepath.Join(stateDir, "cache.json")}
+		runtime.config.loadErr = errors.New("invalid config")
+
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		handled, code := ExecuteCommand([]string{"doctor"}, runtime, TerminalConsole{stdout: &stdout, stderr: &stderr})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stderr.String(), "Config file is invalid", "invalid config")
+	})
+
+	t.Run("missing wardrobe warns", func(t *testing.T) {
+		runtime := newStubRuntime()
+		stateDir := t.TempDir()
+		configPath := filepath.Join(stateDir, "config.json")
+		if err := os.WriteFile(configPath, []byte("{}"), 0600); err != nil {
+			t.Fatalf("WriteFile(config) error = %v", err)
+		}
+		runtime.pathProvider = StaticStoragePathProvider{ConfigPath: configPath, CachePath: filepath.Join(stateDir, "cache.json")}
+		runtime.config.currentConfig = mustCommandConfig(t, filepath.Join(os.Getenv("HOME"), "outfitpicker-missing-wardrobe"), nil)
+		runtime.wardrobe.allOutfitStates = map[string]entities.CategoryOutfitState{}
+
+		var stdout bytes.Buffer
+		handled, code := ExecuteCommand([]string{"doctor"}, runtime, TerminalConsole{stdout: &stdout})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stdout.String(), "Wardrobe directory does not exist", "Cache file is valid")
+	})
+
+	t.Run("category scan failure", func(t *testing.T) {
+		runtime := newStubRuntime()
+		stateDir := t.TempDir()
+		wardrobeDir := cliTestHomeTempDir(t, "outfitpicker-doctor-wardrobe-*")
+		configPath := filepath.Join(stateDir, "config.json")
+		if err := os.WriteFile(configPath, []byte("{}"), 0600); err != nil {
+			t.Fatalf("WriteFile(config) error = %v", err)
+		}
+		runtime.pathProvider = StaticStoragePathProvider{ConfigPath: configPath, CachePath: filepath.Join(stateDir, "cache.json")}
+		runtime.config.currentConfig = mustCommandConfig(t, wardrobeDir, nil)
+		runtime.wardrobe.categoryInfoErr = errors.New("scan failed")
+
+		var stdout bytes.Buffer
+		var stderr bytes.Buffer
+		handled, code := ExecuteCommand([]string{"doctor"}, runtime, TerminalConsole{stdout: &stdout, stderr: &stderr})
+
+		if !handled || code != 1 {
+			t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
+		}
+		assertOutputContains(t, stderr.String(), "Could not scan wardrobe categories", "scan failed")
+	})
+}
+
 func TestExecuteCommand_Pick(t *testing.T) {
 	runtime := newStubRuntime()
 	category := entities.NewCategoryReference("shoes", cliTestCategoryPath("shoes"))
@@ -215,6 +391,15 @@ func TestExecuteCommand_PickIncludeExcludedPropagatesAvailableOutfitError(t *tes
 		t.Fatalf("ExecuteCommand() = handled %t code %d, want handled true code 1", handled, code)
 	}
 	assertOutputContains(t, stderr.String(), "Failed to pick outfit")
+}
+
+func mustCommandConfig(t *testing.T, root string, excluded map[string]bool) *entities.Config {
+	t.Helper()
+	config, err := entities.NewConfig(root, nil, excluded, nil, nil)
+	if err != nil {
+		t.Fatalf("NewConfig(%q) error = %v", root, err)
+	}
+	return config
 }
 
 func TestExpandHomePath(t *testing.T) {

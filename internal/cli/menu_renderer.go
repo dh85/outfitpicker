@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -37,7 +38,40 @@ func (r MenuRenderer) ShowTitle() {
 }
 
 func (r MenuRenderer) ShowOutfitDirectory(path string) {
-	r.terminal().Printf("📁 %s\n\n", Colorize(sanitizeTerminalText(filepath.Clean(path)), uiCyan))
+	r.terminal().Printf("📁 %s\n\n", Colorize(sanitizeTerminalText(displayWardrobePath(path)), uiCyan))
+}
+
+func (r MenuRenderer) ShowWardrobeSummary(rootPath string, categoryInfos []entities.CategoryInfo, wardrobe categoryStateReader) {
+	wornCount := 0
+	totalCount := 0
+	availableForRandom := 0
+	excludedCategories := 0
+
+	for _, info := range categoryInfos {
+		if info.State == entities.CategoryStateUserExcluded {
+			excludedCategories++
+		}
+
+		state, err := wardrobe.GetOutfitState(info.Category)
+		if err != nil {
+			totalCount += info.OutfitCount
+			if info.State == entities.CategoryStateHasOutfits {
+				availableForRandom += info.OutfitCount
+			}
+			continue
+		}
+
+		wornCount += state.WornCount()
+		totalCount += state.TotalCount()
+		if info.State == entities.CategoryStateHasOutfits {
+			availableForRandom += state.AvailableCount()
+		}
+	}
+
+	r.terminal().Printf("Wardrobe: %s\n", sanitizeTerminalText(displayWardrobePath(rootPath)))
+	r.terminal().Printf("Progress: %d of %d outfits worn\n", wornCount, totalCount)
+	r.terminal().Printf("Available for random: %d\n", availableForRandom)
+	r.terminal().Printf("Excluded categories: %d\n\n", excludedCategories)
 }
 
 func (r MenuRenderer) ShowAvailableCategories(availableCategories []entities.CategoryInfo, wardrobe categoryStateReader) {
@@ -142,6 +176,23 @@ func (r MenuRenderer) ShowManualSelectionOutfits(allOutfits []entities.OutfitRef
 		}
 		r.terminal().Printf("  %s %s%s\n", KeyLabel(fmt.Sprintf("%d", index+1)), displayOutfitName(outfit.FileName), wornStatus)
 	}
+}
+
+func displayWardrobePath(path string) string {
+	cleaned := filepath.Clean(path)
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return cleaned
+	}
+	home = filepath.Clean(home)
+	if cleaned == home {
+		return "~"
+	}
+	prefix := home + string(os.PathSeparator)
+	if strings.HasPrefix(cleaned, prefix) {
+		return "~" + string(os.PathSeparator) + strings.TrimPrefix(cleaned, prefix)
+	}
+	return cleaned
 }
 
 func max(a, b int) int {
