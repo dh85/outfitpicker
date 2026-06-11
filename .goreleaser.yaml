@@ -1,0 +1,74 @@
+version: 2
+
+project_name: outfitpicker
+
+builds:
+  - id: outfitpicker
+    main: ./cmd/outfitpicker
+    binary: outfitpicker
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+
+archives:
+  - id: archive
+    ids:
+      - outfitpicker
+    formats:
+      - tar.gz
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+brews:
+  - name: outfitpicker
+    ids:
+      - archive
+    repository:
+      owner: dh85
+      name: homebrew-tap
+      token: "{{ .Env.PUBLISH_GITHUB_TOKEN }}"
+    directory: Formula
+    homepage: https://github.com/dh85/outfitpicker
+    description: Terminal app for choosing outfits from a local wardrobe directory.
+    commit_msg_template: "brew: update {{ .ProjectName }} to {{ .Tag }}"
+    install: |
+      bin.install "outfitpicker"
+    test: |
+      system "#{bin}/outfitpicker", "--version"
+
+scoops:
+  - name: outfitpicker
+    ids:
+      - archive
+    repository:
+      owner: dh85
+      name: scoop-bucket
+      token: "{{ .Env.PUBLISH_GITHUB_TOKEN }}"
+    homepage: https://github.com/dh85/outfitpicker
+    description: Terminal app for choosing outfits from a local wardrobe directory.
+    commit_msg_template: "scoop: update {{ .ProjectName }} to {{ .Tag }}"

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"os"
 
 	"github.com/dh85/outfitpicker/internal/application/usecases"
@@ -10,6 +12,8 @@ import (
 	infraServices "github.com/dh85/outfitpicker/internal/infrastructure/services"
 	"github.com/dh85/outfitpicker/internal/infrastructure/system"
 )
+
+var version = "dev"
 
 var bootstrapApplication = func(console cli.Console) (*cli.Application, bool) {
 	deps := newRuntimeDependencies()
@@ -24,6 +28,10 @@ var showMainMenu = func(app *cli.Application, console cli.Console) {
 }
 
 func main() {
+	if printVersion(os.Args[1:], os.Stdout) {
+		return
+	}
+
 	console := cli.NewTerminalConsole()
 	app, ok := bootstrapApplication(console)
 	if !ok {
@@ -31,6 +39,19 @@ func main() {
 	}
 
 	showMainMenu(app, console)
+}
+
+func printVersion(args []string, output io.Writer) bool {
+	if len(args) != 1 {
+		return false
+	}
+	switch args[0] {
+	case "version", "--version", "-v":
+		fmt.Fprintf(output, "outfitpicker %s\n", version)
+		return true
+	default:
+		return false
+	}
 }
 
 func newRuntimeDependencies() cli.RuntimeDependencies {

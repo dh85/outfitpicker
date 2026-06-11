@@ -14,6 +14,25 @@ The app can:
 - exclude categories from cross-category random selection
 - recover from missing or invalid config during startup
 
+## Installation
+
+Homebrew on macOS or Linux:
+
+```bash
+brew tap dh85/tap
+brew install outfitpicker
+```
+
+Scoop on Windows:
+
+```powershell
+scoop bucket add dh85 https://github.com/dh85/scoop-bucket
+scoop install outfitpicker
+```
+
+GitHub release archives are also published for macOS, Linux, and Windows on
+amd64 and arm64.
+
 ## Project Structure
 
 ```text
@@ -62,6 +81,25 @@ make coverage-check
 make build
 make run
 ```
+
+## Release
+
+Releases are built with GoReleaser when a `v*` tag is pushed:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The release workflow publishes archives and checksums to GitHub Releases, updates
+the Homebrew formula in `dh85/homebrew-tap`, and updates the Scoop manifest in
+`dh85/scoop-bucket`.
+
+Repository setup required before the first release:
+
+- create `dh85/scoop-bucket` as a public repository
+- add a `PUBLISH_GITHUB_TOKEN` Actions secret with contents write access to
+  `dh85/homebrew-tap` and `dh85/scoop-bucket`
 
 Coverage is enforced by `make coverage-check` with `COVERAGE_MIN ?= 92.5`.
 

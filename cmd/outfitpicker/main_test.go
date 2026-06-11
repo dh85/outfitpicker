@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/dh85/outfitpicker/internal/cli"
@@ -61,4 +62,40 @@ func TestMain(t *testing.T) {
 			t.Fatalf("showCalls = %d, want 1", showCalls)
 		}
 	})
+}
+
+func TestPrintVersion(t *testing.T) {
+	originalVersion := version
+	version = "1.2.3"
+	t.Cleanup(func() {
+		version = originalVersion
+	})
+
+	tests := []struct {
+		name      string
+		args      []string
+		wantPrint bool
+		want      string
+	}{
+		{name: "long flag", args: []string{"--version"}, wantPrint: true, want: "outfitpicker 1.2.3\n"},
+		{name: "short flag", args: []string{"-v"}, wantPrint: true, want: "outfitpicker 1.2.3\n"},
+		{name: "version command", args: []string{"version"}, wantPrint: true, want: "outfitpicker 1.2.3\n"},
+		{name: "no args", args: nil},
+		{name: "other arg", args: []string{"--help"}},
+		{name: "too many args", args: []string{"version", "extra"}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var output bytes.Buffer
+			gotPrint := printVersion(tt.args, &output)
+
+			if gotPrint != tt.wantPrint {
+				t.Fatalf("printVersion() = %t, want %t", gotPrint, tt.wantPrint)
+			}
+			if output.String() != tt.want {
+				t.Fatalf("output = %q, want %q", output.String(), tt.want)
+			}
+		})
+	}
 }
