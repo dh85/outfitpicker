@@ -1,6 +1,7 @@
 package services
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/dh85/outfitpicker/internal/domain/entities"
@@ -14,8 +15,8 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"casual", "formal"},
 			},
 			files: map[string][]string{
-				"/test/casual": {"outfit1.avatar", "outfit2.avatar"},
-				"/test/formal": {"suit.avatar"},
+				testCategoryPath("casual"): {"outfit1.avatar", "outfit2.avatar"},
+				testCategoryPath("formal"): {"suit.avatar"},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -42,8 +43,8 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"casual"},
 			},
 			files: map[string][]string{
-				"/test":        {"notes.txt"},
-				"/test/casual": {"outfit.avatar"},
+				"/test":                    {"notes.txt"},
+				testCategoryPath("casual"): {"outfit.avatar"},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -67,8 +68,8 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"casual", "old"},
 			},
 			files: map[string][]string{
-				"/test/casual": {"outfit.avatar"},
-				"/test/old":    {"outfit.avatar"},
+				testCategoryPath("casual"): {"outfit.avatar"},
+				testCategoryPath("old"):    {"outfit.avatar"},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -96,7 +97,7 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"empty"},
 			},
 			files: map[string][]string{
-				"/test/empty": {},
+				testCategoryPath("empty"): {},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -117,7 +118,7 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"noavatars"},
 			},
 			files: map[string][]string{
-				"/test/noavatars": {"readme.txt"},
+				testCategoryPath("noavatars"): {"readme.txt"},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -149,7 +150,7 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"casual"},
 			},
 			readDirErrors: map[string]error{
-				"/test/casual": errors.ErrFileSystem,
+				testCategoryPath("casual"): errors.ErrFileSystem,
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -167,10 +168,10 @@ func TestCategoryScanner_ScanCategories(t *testing.T) {
 				"/test": {"casual"},
 			},
 			files: map[string][]string{
-				"/test/casual": {"outfit.avatar"},
+				testCategoryPath("casual"): {"outfit.avatar"},
 			},
 			readDirErrorSequence: map[string][]error{
-				"/test/casual": {nil, errors.ErrFileSystem},
+				testCategoryPath("casual"): {nil, errors.ErrFileSystem},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
@@ -187,12 +188,12 @@ func TestCategoryScanner_GetOutfits(t *testing.T) {
 	t.Run("returns sorted outfit files", func(t *testing.T) {
 		fm := &fakeFileManager{
 			files: map[string][]string{
-				"/test/casual": {"zebra.avatar", "apple.avatar", "readme.txt"},
+				testCategoryPath("casual"): {"zebra.avatar", "apple.avatar", "readme.txt"},
 			},
 		}
 		scanner := NewCategoryScanner(fm)
 
-		result, err := scanner.GetOutfits("/test/casual")
+		result, err := scanner.GetOutfits(testCategoryPath("casual"))
 
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
@@ -212,7 +213,7 @@ func TestCategoryScanner_GetOutfits(t *testing.T) {
 		fm := &fakeFileManager{err: errors.ErrFileSystem}
 		scanner := NewCategoryScanner(fm)
 
-		_, err := scanner.GetOutfits("/test/casual")
+		_, err := scanner.GetOutfits(testCategoryPath("casual"))
 
 		if err != errors.ErrFileSystem {
 			t.Errorf("expected ErrFileSystem, got %v", err)
@@ -249,12 +250,12 @@ func (f *fakeFileManager) ReadDir(path string) ([]entities.FileEntry, error) {
 	var entries []entities.FileEntry
 	if dirs, ok := f.dirs[path]; ok {
 		for _, dir := range dirs {
-			entries = append(entries, entities.NewFileEntryWithDir(path+"/"+dir, true))
+			entries = append(entries, entities.NewFileEntryWithDir(filepath.Join(path, dir), true))
 		}
 	}
 	if files, ok := f.files[path]; ok {
 		for _, file := range files {
-			entries = append(entries, entities.NewFileEntryWithDir(path+"/"+file, false))
+			entries = append(entries, entities.NewFileEntryWithDir(filepath.Join(path, file), false))
 		}
 	}
 	return entries, nil
@@ -262,4 +263,8 @@ func (f *fakeFileManager) ReadDir(path string) ([]entities.FileEntry, error) {
 
 func (f *fakeFileManager) FileExists(path string) bool {
 	return true
+}
+
+func testCategoryPath(name string) string {
+	return filepath.Join("/test", name)
 }

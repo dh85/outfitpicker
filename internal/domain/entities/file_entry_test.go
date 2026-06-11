@@ -1,15 +1,19 @@
 package entities
 
-import "testing"
+import (
+	"path/filepath"
+	"testing"
+)
 
 func TestNewFileEntryWithDir(t *testing.T) {
 	entry := NewFileEntryWithDir("/outfitpicker-test/outfits/casual/look.avatar", true)
+	wantCategoryPath := filepath.Join("/outfitpicker-test/outfits", "casual")
 
 	if entry.filePath != "/outfitpicker-test/outfits/casual/look.avatar" {
 		t.Fatalf("filePath = %q, want /outfitpicker-test/outfits/casual/look.avatar", entry.filePath)
 	}
-	if entry.CategoryPath() != "/outfitpicker-test/outfits/casual" {
-		t.Fatalf("CategoryPath() = %q, want /outfitpicker-test/outfits/casual", entry.CategoryPath())
+	if entry.CategoryPath() != wantCategoryPath {
+		t.Fatalf("CategoryPath() = %q, want %q", entry.CategoryPath(), wantCategoryPath)
 	}
 	if entry.CategoryName() != "casual" {
 		t.Fatalf("CategoryName() = %q, want casual", entry.CategoryName())
@@ -34,14 +38,14 @@ func TestFileEntry_Properties(t *testing.T) {
 			name:             "unix path",
 			filePath:         "/Users/user/outfits/casual/jeans-tshirt.avatar",
 			wantFileName:     "jeans-tshirt.avatar",
-			wantCategoryPath: "/Users/user/outfits/casual",
+			wantCategoryPath: filepath.Join("/Users/user/outfits", "casual"),
 			wantCategoryName: "casual",
 		},
 		{
 			name:             "nested path",
 			filePath:         "/Users/user/outfits/work/suit-tie.avatar",
 			wantFileName:     "suit-tie.avatar",
-			wantCategoryPath: "/Users/user/outfits/work",
+			wantCategoryPath: filepath.Join("/Users/user/outfits", "work"),
 			wantCategoryName: "work",
 		},
 	}

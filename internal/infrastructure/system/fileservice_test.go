@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -103,7 +104,7 @@ func TestFileService_FilePath(t *testing.T) {
 		{
 			name:    "valid base directory",
 			baseDir: "/Users/user/.config",
-			want:    "/Users/user/.config/outfitpicker/test.json",
+			want:    filepath.Join("/Users/user/.config", "outfitpicker", "test.json"),
 		},
 		{
 			name:    "directory provider error",
@@ -274,10 +275,12 @@ func TestFileService_Save_DefaultDataManagerWritesAtomically(t *testing.T) {
 	if got.Name != "test" || got.Value != 42 {
 		t.Fatalf("saved config = %+v, want test/42", got)
 	}
-	if info, err := os.Stat(path); err != nil {
-		t.Fatalf("Stat() error = %v", err)
-	} else if gotMode := info.Mode().Perm(); gotMode != 0o600 {
-		t.Fatalf("file mode = %v, want 0600", gotMode)
+	if runtime.GOOS != "windows" {
+		if info, err := os.Stat(path); err != nil {
+			t.Fatalf("Stat() error = %v", err)
+		} else if gotMode := info.Mode().Perm(); gotMode != 0o600 {
+			t.Fatalf("file mode = %v, want 0600", gotMode)
+		}
 	}
 
 	tmpEntries, err := filepath.Glob(filepath.Join(filepath.Dir(path), ".test.json.tmp-*"))
@@ -475,8 +478,10 @@ func TestIntegration_FileService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("os.Stat() error = %v", err)
 	}
-	if perms := info.Mode().Perm(); perms != 0o600 {
-		t.Fatalf("saved file permissions = %#o, want %#o", perms, 0o600)
+	if runtime.GOOS != "windows" {
+		if perms := info.Mode().Perm(); perms != 0o600 {
+			t.Fatalf("saved file permissions = %#o, want %#o", perms, 0o600)
+		}
 	}
 
 	loaded, err := fs.Load()
