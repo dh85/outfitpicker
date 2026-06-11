@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -76,8 +77,8 @@ func TestPickOutfitUseCase_LoadAvailableOutfits(t *testing.T) {
 				)
 			},
 			want: []entities.OutfitReference{
-				entities.NewOutfitReference("outfit2.avatar", entities.NewCategoryReference("casual", "/test/path/casual")),
-				entities.NewOutfitReference("outfit3.avatar", entities.NewCategoryReference("casual", "/test/path/casual")),
+				entities.NewOutfitReference("outfit2.avatar", entities.NewCategoryReference("casual", filepath.Join("/test/path", "casual"))),
+				entities.NewOutfitReference("outfit3.avatar", entities.NewCategoryReference("casual", filepath.Join("/test/path", "casual"))),
 			},
 		},
 		{
@@ -95,9 +96,9 @@ func TestPickOutfitUseCase_LoadAvailableOutfits(t *testing.T) {
 				)
 			},
 			want: []entities.OutfitReference{
-				entities.NewOutfitReference("outfit1.avatar", entities.NewCategoryReference("casual", "/test/path/casual")),
-				entities.NewOutfitReference("outfit2.avatar", entities.NewCategoryReference("casual", "/test/path/casual")),
-				entities.NewOutfitReference("outfit2.avatar", entities.NewCategoryReference("casual", "/test/path/casual")),
+				entities.NewOutfitReference("outfit1.avatar", entities.NewCategoryReference("casual", filepath.Join("/test/path", "casual"))),
+				entities.NewOutfitReference("outfit2.avatar", entities.NewCategoryReference("casual", filepath.Join("/test/path", "casual"))),
+				entities.NewOutfitReference("outfit2.avatar", entities.NewCategoryReference("casual", filepath.Join("/test/path", "casual"))),
 			},
 		},
 	}

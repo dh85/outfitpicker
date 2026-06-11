@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"errors"
+	"path/filepath"
 	"reflect"
 	"testing"
 
@@ -154,7 +155,7 @@ func TestWardrobeQueries_GetOutfitState(t *testing.T) {
 		}
 		service := &wardrobeCategoryService{
 			outfitsByPath: map[string][]entities.FileEntry{
-				wardrobeRoot + "/casual": {
+				wardrobeCategoryPath("casual"): {
 					{FileName: "jeans.avatar"},
 					{FileName: "shirt.avatar"},
 					{FileName: "boots.avatar"},
@@ -167,7 +168,7 @@ func TestWardrobeQueries_GetOutfitState(t *testing.T) {
 		if err != nil {
 			t.Fatalf("GetOutfitState() error = %v", err)
 		}
-		if state.Category.Name != "casual" || state.Category.Path != wardrobeRoot+"/casual" {
+		if state.Category.Name != "casual" || state.Category.Path != wardrobeCategoryPath("casual") {
 			t.Fatalf("state category = %#v", state.Category)
 		}
 		if state.TotalCount() != 3 || state.AvailableCount() != 2 || state.WornCount() != 1 {
@@ -179,7 +180,7 @@ func TestWardrobeQueries_GetOutfitState(t *testing.T) {
 		if got := outfitNames(state.AvailableOutfits); !reflect.DeepEqual(got, []string{"shirt.avatar", "boots.avatar"}) {
 			t.Fatalf("available outfits = %v", got)
 		}
-		if !reflect.DeepEqual(service.outfitPaths, []string{wardrobeRoot + "/casual"}) {
+		if !reflect.DeepEqual(service.outfitPaths, []string{wardrobeCategoryPath("casual")}) {
 			t.Fatalf("GetOutfits paths = %v", service.outfitPaths)
 		}
 	})
@@ -187,7 +188,7 @@ func TestWardrobeQueries_GetOutfitState(t *testing.T) {
 	t.Run("uses empty cache when category is missing", func(t *testing.T) {
 		service := &wardrobeCategoryService{
 			outfitsByPath: map[string][]entities.FileEntry{
-				wardrobeRoot + "/new": {
+				wardrobeCategoryPath("new"): {
 					{FileName: "one.avatar"},
 				},
 			},
@@ -255,8 +256,8 @@ func TestWardrobeQueries_GetAllOutfitStates(t *testing.T) {
 				categoryInfo("formal", entities.CategoryStateHasOutfits, 1),
 			},
 			outfitsByPath: map[string][]entities.FileEntry{
-				wardrobeRoot + "/casual": {{FileName: "one.avatar"}},
-				wardrobeRoot + "/formal": {{FileName: "suit.avatar"}},
+				wardrobeCategoryPath("casual"): {{FileName: "one.avatar"}},
+				wardrobeCategoryPath("formal"): {{FileName: "suit.avatar"}},
 			},
 		}
 		queries := newWardrobeQueries(mustWardrobeConfig(t, nil), entities.NewOutfitCache(), service)
@@ -301,10 +302,10 @@ func TestWardrobeQueries_GetAllOutfitStates(t *testing.T) {
 					categoryInfo("formal", entities.CategoryStateHasOutfits, 1),
 				},
 				outfitsByPath: map[string][]entities.FileEntry{
-					wardrobeRoot + "/casual": {{FileName: "one.avatar"}},
+					wardrobeCategoryPath("casual"): {{FileName: "one.avatar"}},
 				},
 				outfitErrorsByPath: map[string]error{
-					wardrobeRoot + "/formal": wantErr,
+					wardrobeCategoryPath("formal"): wantErr,
 				},
 			},
 		)
@@ -331,7 +332,7 @@ func TestWardrobeQueries_GetAvailableOutfits(t *testing.T) {
 			cache,
 			&wardrobeCategoryService{
 				outfitsByPath: map[string][]entities.FileEntry{
-					wardrobeRoot + "/casual": {
+					wardrobeCategoryPath("casual"): {
 						{FileName: "one.avatar"},
 						{FileName: "two.avatar"},
 					},
@@ -370,7 +371,7 @@ func TestWardrobeQueries_ShowAllOutfits(t *testing.T) {
 	t.Run("returns all outfits in category", func(t *testing.T) {
 		service := &wardrobeCategoryService{
 			outfitsByPath: map[string][]entities.FileEntry{
-				wardrobeRoot + "/casual": {
+				wardrobeCategoryPath("casual"): {
 					{FileName: "one.avatar"},
 					{FileName: "two.avatar"},
 				},
@@ -385,7 +386,7 @@ func TestWardrobeQueries_ShowAllOutfits(t *testing.T) {
 		if got := outfitNames(outfits); !reflect.DeepEqual(got, []string{"one.avatar", "two.avatar"}) {
 			t.Fatalf("ShowAllOutfits() = %v, want [one.avatar two.avatar]", got)
 		}
-		if outfits[0].Category.Path != wardrobeRoot+"/casual" {
+		if outfits[0].Category.Path != wardrobeCategoryPath("casual") {
 			t.Fatalf("outfit category path = %q", outfits[0].Category.Path)
 		}
 	})
@@ -490,7 +491,11 @@ func categoryInfo(name string, state entities.CategoryState, count int) entities
 }
 
 func categoryRefForWardrobe(name string) entities.CategoryReference {
-	return entities.NewCategoryReference(name, wardrobeRoot+"/"+name)
+	return entities.NewCategoryReference(name, wardrobeCategoryPath(name))
+}
+
+func wardrobeCategoryPath(name string) string {
+	return filepath.Join(wardrobeRoot, name)
 }
 
 func categoryNames(categories []entities.CategoryReference) []string {
