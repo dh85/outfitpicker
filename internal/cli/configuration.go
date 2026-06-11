@@ -21,10 +21,26 @@ func PromptConfiguration(categoryService interfaces.CategoryService) *Configurat
 }
 
 func PromptConfigurationWithConsole(console Console, categoryService interfaces.CategoryService) *Configuration {
-	path := promptWithConsole(console, "Please enter the path to your outfit directory: ")
+	terminal := consoleOrDefault(console)
+	showFirstRunWelcome(console)
+
+	path := promptWithConsole(console, "Where are your outfits stored? ")
 	if strings.TrimSpace(path) == "" {
-		consoleOrDefault(console).Error("No directory path provided")
+		terminal.Error("No directory path provided")
 		return nil
+	}
+
+	if categoryService != nil {
+		categoryInfos, err := categoryService.ScanCategories(strings.TrimSpace(path), nil)
+		if err != nil {
+			terminal.Error(fmt.Sprintf("Could not scan wardrobe directory: %v", err))
+			return nil
+		}
+		showWardrobePreview(console, categoryInfos)
+		if !ConfirmWithConsole(console, "Use this wardrobe? [Y/n]: ", true) {
+			terminal.Info("Setup cancelled")
+			return nil
+		}
 	}
 
 	language := promptWithConsole(console, "Set language (en is default): ")
@@ -34,6 +50,61 @@ func PromptConfigurationWithConsole(console Console, categoryService interfaces.
 		Language:           language,
 		ExcludedCategories: promptExcludedCategoriesWithConsole(console, path, categoryService),
 	}
+}
+
+func showFirstRunWelcome(console Console) {
+	terminal := consoleOrDefault(console)
+	terminal.Println("Welcome to OutfitPicker 👗")
+	terminal.Println()
+	terminal.Println("No wardrobe directory is configured yet.")
+	terminal.Println()
+}
+
+func showWardrobePreview(console Console, categoryInfos []entities.CategoryInfo) {
+	terminal := consoleOrDefault(console)
+	terminal.Println()
+	if len(categoryInfos) == 0 {
+		terminal.Warning("No categories found in this wardrobe directory.")
+		return
+	}
+
+	terminal.Printf("Found %d %s:\n", len(categoryInfos), pluralize("category", len(categoryInfos)))
+	for _, info := range categoryInfos {
+		terminal.Printf("  %s %-12s %s\n", setupCategoryPreviewIcon(info), sanitizeTerminalText(info.Category.Name), setupCategoryPreviewStatus(info))
+	}
+	terminal.Println()
+}
+
+func setupCategoryPreviewIcon(info entities.CategoryInfo) string {
+	if info.State == entities.CategoryStateHasOutfits {
+		return "✓"
+	}
+	return "⚠"
+}
+
+func setupCategoryPreviewStatus(info entities.CategoryInfo) string {
+	switch info.State {
+	case entities.CategoryStateHasOutfits:
+		return fmt.Sprintf("%d %s", info.OutfitCount, pluralize("outfit", info.OutfitCount))
+	case entities.CategoryStateEmpty:
+		return "empty"
+	case entities.CategoryStateNoAvatarFiles:
+		return "no .avatar files found"
+	case entities.CategoryStateUserExcluded:
+		return "excluded"
+	default:
+		return string(info.State)
+	}
+}
+
+func pluralize(word string, count int) string {
+	if count == 1 {
+		return word
+	}
+	if word == "category" {
+		return "categories"
+	}
+	return word + "s"
 }
 
 func (c Configuration) BuildConfig() (*entities.Config, error) {

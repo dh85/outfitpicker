@@ -19,7 +19,7 @@ func TestIntegration_FirstRunBootstrapToUsableMenu(t *testing.T) {
 		"casual": {"one.avatar"},
 	})
 
-	restore := withPromptResponses(t, root, "", "", "r", "b", "q")
+	restore := withPromptResponses(t, root, "", "", "", "r", "b", "q")
 	defer restore()
 
 	app, ok := BootstrapApplication(deps, nil)
@@ -149,7 +149,7 @@ func TestIntegration_ExcludedCategoriesHonoredEndToEnd(t *testing.T) {
 		"formal": {"suit.avatar"},
 	})
 
-	restore := withPromptResponses(t, root, "", "formal")
+	restore := withPromptResponses(t, root, "", "", "formal")
 	defer restore()
 
 	_, ok := BootstrapApplication(deps, nil)

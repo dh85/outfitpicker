@@ -41,14 +41,14 @@ func TestPromptConfiguration(t *testing.T) {
 		}
 	})
 
-	t.Run("builds configuration from prompts", func(t *testing.T) {
+	t.Run("builds configuration from prompts after confirming wardrobe", func(t *testing.T) {
 		service := &stubCategoryService{
 			scanCategoriesResult: []entities.CategoryInfo{
 				entities.NewCategoryInfo(entities.NewCategoryReference("Casual", cliTestCategoryPath("Casual")), entities.CategoryStateHasOutfits, 2),
 				entities.NewCategoryInfo(entities.NewCategoryReference("Formal", cliTestCategoryPath("Formal")), entities.CategoryStateEmpty, 0),
 			},
 		}
-		restore := withPromptResponses(t, cliTestOutfitRoot, "fr", "2, Casual")
+		restore := withPromptResponses(t, cliTestOutfitRoot, "", "fr", "2, Casual")
 		defer restore()
 
 		got := PromptConfiguration(service)
@@ -61,6 +61,59 @@ func TestPromptConfiguration(t *testing.T) {
 			t.Fatalf("PromptConfiguration() = %#v, want %#v", got, want)
 		}
 	})
+
+	t.Run("returns nil when wardrobe preview is declined", func(t *testing.T) {
+		service := &stubCategoryService{
+			scanCategoriesResult: []entities.CategoryInfo{
+				entities.NewCategoryInfo(entities.NewCategoryReference("Casual", cliTestCategoryPath("Casual")), entities.CategoryStateHasOutfits, 2),
+			},
+		}
+		restore := withPromptResponses(t, cliTestOutfitRoot, "n")
+		defer restore()
+
+		if got := PromptConfiguration(service); got != nil {
+			t.Fatalf("PromptConfiguration() = %#v, want nil", got)
+		}
+	})
+}
+
+func TestPromptConfigurationWithConsole_FirstRunOnboarding(t *testing.T) {
+	service := &stubCategoryService{
+		scanCategoriesResult: []entities.CategoryInfo{
+			entities.NewCategoryInfo(entities.NewCategoryReference("shirts", cliTestCategoryPath("shirts")), entities.CategoryStateHasOutfits, 12),
+			entities.NewCategoryInfo(entities.NewCategoryReference("shoes", cliTestCategoryPath("shoes")), entities.CategoryStateNoAvatarFiles, 0),
+		},
+	}
+	input := strings.Join([]string{cliTestOutfitRoot, "", "", ""}, "\n") + "\n"
+	var output strings.Builder
+
+	got := PromptConfigurationWithConsole(TerminalConsole{stdin: strings.NewReader(input), stdout: &output, stderr: &output}, service)
+	if got == nil {
+		t.Fatal("PromptConfigurationWithConsole() = nil, want configuration")
+	}
+	assertOutputContains(t, output.String(),
+		"Welcome to OutfitPicker",
+		"No wardrobe directory is configured yet.",
+		"Where are your outfits stored?",
+		"Found 2 categories:",
+		"shirts",
+		"12 outfits",
+		"shoes",
+		"no .avatar files found",
+		"Use this wardrobe? [Y/n]",
+	)
+}
+
+func TestPromptConfigurationWithConsole_ScanErrorAbortsSetup(t *testing.T) {
+	service := &stubCategoryService{scanCategoriesErr: errors.New("missing directory")}
+	var output strings.Builder
+
+	got := PromptConfigurationWithConsole(TerminalConsole{stdin: strings.NewReader(cliTestOutfitRoot + "\n"), stdout: &output, stderr: &output}, service)
+
+	if got != nil {
+		t.Fatalf("PromptConfigurationWithConsole() = %#v, want nil", got)
+	}
+	assertOutputContains(t, output.String(), "Could not scan wardrobe directory")
 }
 
 func runPromptWithInput(t *testing.T, message string, input string) (string, string) {

@@ -395,7 +395,7 @@ func TestBootstrapApplication_FirstTimeSetupCreatesApplication(t *testing.T) {
 	deps := newProductionStyleRuntimeDependencies()
 	outfitPath := cliTestHomeTempDir(t, "outfitpicker-bootstrap-test-")
 
-	withBootstrapPromptResponses(t, outfitPath, "")
+	withBootstrapPromptResponses(t, outfitPath, "", "")
 
 	app, ok := BootstrapApplication(deps, nil)
 	if !ok {
@@ -433,7 +433,7 @@ func TestBootstrapApplication_RecoveryFlowReplacesInvalidConfig(t *testing.T) {
 
 	outfitPath := cliTestHomeTempDir(t, "outfitpicker-bootstrap-recovery-")
 
-	withBootstrapPromptResponses(t, "y", outfitPath, "")
+	withBootstrapPromptResponses(t, "y", outfitPath, "", "")
 
 	app, ok := BootstrapApplication(deps, nil)
 	if !ok {
