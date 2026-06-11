@@ -76,20 +76,25 @@ func validateRestrictedPaths(path string) error {
 
 func validateSymlinks(path string) error {
 	cleaned := filepath.Clean(path)
+	volume := filepath.VolumeName(cleaned)
+	remaining := strings.TrimPrefix(cleaned, volume)
 	current := ""
 	if filepath.IsAbs(cleaned) {
-		current = string(filepath.Separator)
+		current = volume + string(filepath.Separator)
+		remaining = strings.TrimPrefix(remaining, string(filepath.Separator))
+	} else {
+		current = volume
 	}
 
-	for _, part := range strings.Split(cleaned, string(filepath.Separator)) {
+	for _, part := range strings.Split(remaining, string(filepath.Separator)) {
 		if part == "" || part == "." {
 			continue
 		}
 
-		if current == string(filepath.Separator) {
-			current = filepath.Join(current, part)
-		} else if current == "" {
+		if current == "" {
 			current = part
+		} else if current == volume+string(filepath.Separator) {
+			current = filepath.Join(current, part)
 		} else {
 			current = filepath.Join(current, part)
 		}
