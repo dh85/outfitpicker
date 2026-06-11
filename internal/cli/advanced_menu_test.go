@@ -283,7 +283,7 @@ func TestAdvancedMenu_handlePathChange(t *testing.T) {
 
 		assertMenuDestination(t, menu.handlePathChange(), menuDestinationAdvanced)
 		assertCurrentConfigRoot(t, picker, cliTestOutfitRoot)
-		assertOutputContains(t, output.String(), "Changing wardrobe path will reset worn outfit history", "Current: "+cliTestOutfitRoot, "New:     "+cliTestNewOutfitRoot, "Continue? [y/N]")
+		assertOutputContains(t, output.String(), "Changing wardrobe path will reset worn outfit history", "Current: "+displayWardrobePath(cliTestOutfitRoot), "New:     "+displayWardrobePath(cliTestNewOutfitRoot), "Continue? [y/N]")
 	})
 
 	t.Run("update error", func(t *testing.T) {

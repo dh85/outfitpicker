@@ -29,7 +29,7 @@ func TestMenuRenderer_ShowWardrobeSummary(t *testing.T) {
 		}, wardrobe)
 	})
 
-	assertOutputContains(t, output, "Wardrobe:", cliTestOutfitRoot, "Progress: 2 of 5 outfits worn", "Available for random: 3", "Excluded categories: 1")
+	assertOutputContains(t, output, "Wardrobe:", displayWardrobePath(cliTestOutfitRoot), "Progress: 2 of 5 outfits worn", "Available for random: 3", "Excluded categories: 1")
 }
 
 func TestMenuRenderer_ShowAvailableCategories(t *testing.T) {
