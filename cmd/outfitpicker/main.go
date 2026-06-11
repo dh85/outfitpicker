@@ -27,14 +27,34 @@ var showMainMenu = func(app *cli.Application, console cli.Console) {
 	cli.NewMenuSystem(outfitService, app, presentation, renderer, console).ShowMainMenu()
 }
 
+var executeCommand = cli.ExecuteCommand
+
+var exitProcess = os.Exit
+
 func main() {
 	if printVersion(os.Args[1:], os.Stdout) {
 		return
 	}
 
 	console := cli.NewTerminalConsole()
+	if len(os.Args) > 1 {
+		if handled, code := executeCommand(os.Args[1:], nil, console); handled {
+			if code != 0 {
+				exitProcess(code)
+			}
+			return
+		}
+	}
+
 	app, ok := bootstrapApplication(console)
 	if !ok {
+		return
+	}
+
+	if handled, code := executeCommand(os.Args[1:], app, console); handled {
+		if code != 0 {
+			exitProcess(code)
+		}
 		return
 	}
 
